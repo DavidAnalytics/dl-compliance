@@ -1,0 +1,20 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+.netlify/
+
+# Environment — never commit secrets
+.env
+.env.local
+.env.*.local
+
+# Editor and OS
+.DS_Store
+.vscode/
+*.log
+npm-debug.log*
+
+# TypeScript build info
+*.tsbuildinfo
