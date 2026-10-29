@@ -25,14 +25,14 @@ export function Login() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
+    <div className="flex min-h-screen items-center justify-center bg-ink px-4">
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
-          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-lg bg-brand-600 text-lg font-bold text-white">
+          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-lg bg-brass font-mono text-lg font-semibold text-ink">
             DL
           </div>
-          <h1 className="text-xl font-semibold text-slate-900">DL Compliance</h1>
-          <p className="mt-1 text-sm text-slate-500">DL Business Systems Ltd</p>
+          <h1 className="text-xl font-semibold text-white">DL Compliance</h1>
+          <p className="mt-1 text-sm text-slate-400">DL Business Systems Ltd</p>
         </div>
 
         {!isConfigured && (
@@ -41,9 +41,9 @@ export function Login() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <form onSubmit={handleSubmit} className="space-y-4 rounded-xl border border-line bg-surface p-6 shadow-raised">
           <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700" htmlFor="email">
+            <label className="mb-1 block text-sm font-medium text-content" htmlFor="email">
               Email
             </label>
             <input
@@ -52,12 +52,12 @@ export function Login() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+              className="w-full rounded-md border border-line px-3 py-2 text-sm focus:border-brass focus:outline-none"
               autoComplete="email"
             />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700" htmlFor="password">
+            <label className="mb-1 block text-sm font-medium text-content" htmlFor="password">
               Password
             </label>
             <input
@@ -66,7 +66,7 @@ export function Login() {
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+              className="w-full rounded-md border border-line px-3 py-2 text-sm focus:border-brass focus:outline-none"
               autoComplete="current-password"
             />
           </div>
@@ -76,13 +76,13 @@ export function Login() {
           <button
             type="submit"
             disabled={busy}
-            className="w-full rounded-md bg-brand-600 py-2 text-sm font-semibold text-white transition hover:bg-brand-700 disabled:opacity-60"
+            className="w-full rounded-md bg-ink py-2 text-sm font-semibold text-white transition hover:bg-ink-700 disabled:opacity-60"
           >
             {busy ? 'Signing in…' : 'Sign in'}
           </button>
         </form>
 
-        <p className="mt-6 text-center text-xs text-slate-400">
+        <p className="mt-6 text-center text-xs text-slate-500">
           Internal system. Authorised users only.
         </p>
       </div>

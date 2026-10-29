@@ -35,7 +35,7 @@ export function overallScore(domainScores: Record<CrsDomain['key'], number>): nu
 }
 
 export const RAG_STYLES: Record<RagRating, { text: string; bg: string; label: string }> = {
-  green: { text: 'text-rag-green', bg: 'bg-green-50', label: 'On track' },
-  amber: { text: 'text-rag-amber', bg: 'bg-amber-50', label: 'Needs attention' },
-  red: { text: 'text-rag-red', bg: 'bg-red-50', label: 'At risk' },
+  green: { text: 'text-rag-green', bg: 'bg-rag-greenbg', label: 'On track' },
+  amber: { text: 'text-rag-amber', bg: 'bg-rag-amberbg', label: 'Needs attention' },
+  red: { text: 'text-rag-red', bg: 'bg-rag-redbg', label: 'At risk' },
 };

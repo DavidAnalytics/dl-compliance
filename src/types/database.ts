@@ -12,6 +12,14 @@ export type AbsenceType = 'holiday' | 'sickness' | 'unpaid' | 'parental' | 'comp
 export type DbsLevel = 'basic' | 'standard' | 'enhanced' | 'enhanced_barred';
 export type ReportStatus = 'due' | 'reported' | 'not_required' | 'overdue';
 export type RagRating = 'green' | 'amber' | 'red';
+export type ExcuseType = 'continuous' | 'time_limited' | 'six_month' | 'none';
+export type DocStatus = 'present' | 'missing' | 'expiring' | 'expired';
+export type AlertType =
+  | 'visa_expiry' | 'rtw_follow_up' | 'dbs_renewal' | 'document_expiry'
+  | 'reporting_deadline' | 'review_due' | 'sms_login_stale' | 'salary_shortfall'
+  | 'role_review_due' | 'unexplained_absence';
+export type AlertSeverity = 'info' | 'amber' | 'red';
+export type AlertStatus = 'open' | 'acknowledged' | 'resolved' | 'dismissed';
 
 export interface Organisation {
   id: string;
@@ -74,6 +82,8 @@ export interface RightToWorkCheck {
   checked_by: string | null;
   outcome: RtwOutcome;
   follow_up_due: string | null;
+  excuse_type: ExcuseType;
+  excuse_expiry: string | null;
   document_id: string | null;
   notes: string | null;
   created_at: string;
@@ -136,4 +146,71 @@ export interface KeyPersonnel {
   notes: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface Alert {
+  id: string;
+  organisation_id: string;
+  worker_id: string | null;
+  alert_type: AlertType;
+  severity: AlertSeverity;
+  status: AlertStatus;
+  title: string;
+  detail: string | null;
+  due_date: string | null;
+  days_out: number | null;
+  resolved_at: string | null;
+  resolved_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface RequiredDocument {
+  id: string;
+  worker_id: string;
+  doc_key: string;
+  label: string;
+  required: boolean;
+  status: DocStatus;
+  document_id: string | null;
+  expiry_date: string | null;
+  review_date: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ContactHistory {
+  id: string;
+  worker_id: string;
+  field: string;
+  value: string;
+  effective_from: string;
+  effective_to: string | null;
+  created_at: string;
+}
+
+export interface PayPeriod {
+  id: string;
+  worker_id: string;
+  period_start: string;
+  period_end: string;
+  gross_paid: number | null;
+  hours: number | null;
+  payslip_document_id: string | null;
+  meets_going_rate: boolean | null;
+  shortfall: number | null;
+  source: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SocGoingRate {
+  id: string;
+  soc_code: string;
+  occupation: string;
+  going_rate_annual: number | null;
+  hourly_rate: number | null;
+  effective_from: string | null;
+  source_note: string | null;
 }
