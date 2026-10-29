@@ -47,7 +47,7 @@ export function ComplianceDashboard() {
     <div className="space-y-6">
       {/* Welcome / score panel */}
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
-        <div className="overflow-hidden rounded-2xl bg-brand-gradient p-7 text-white shadow-nav lg:col-span-2">
+        <div className="overflow-hidden rounded-2xl bg-brand-gradient p-5 sm:p-7 text-white shadow-nav lg:col-span-2">
           <div className="flex items-center gap-2 text-white/80">
             <ShieldCheck size={18} /> <span className="text-sm font-semibold">Sponsor licence compliance</span>
           </div>

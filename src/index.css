@@ -8,10 +8,23 @@
   text-rendering: optimizeLegibility;
 }
 
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+html,
 body {
   margin: 0;
   background: #f4f4fb;
   color: #1f1b3a;
+  max-width: 100%;
+  /* clip stray horizontal overflow (e.g. the off-canvas menu) without
+     breaking sticky positioning the way overflow:hidden would */
+  overflow-x: clip;
+}
+
+#root {
+  overflow-x: clip;
 }
 
 @media (prefers-reduced-motion: reduce) {

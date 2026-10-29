@@ -70,7 +70,7 @@ export function HrDashboard() {
   return (
     <div className="space-y-6">
       {/* Welcome panel */}
-      <div className="overflow-hidden rounded-2xl bg-brand-gradient p-7 text-white shadow-nav">
+      <div className="overflow-hidden rounded-2xl bg-brand-gradient p-5 sm:p-7 text-white shadow-nav">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <p className="text-sm font-medium text-white/80">{dateLabel}</p>

@@ -46,7 +46,7 @@ export function MyOverview() {
 
   return (
     <div className="space-y-6">
-      <div className="overflow-hidden rounded-2xl bg-brand-gradient p-7 text-white shadow-nav">
+      <div className="overflow-hidden rounded-2xl bg-brand-gradient p-5 sm:p-7 text-white shadow-nav">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-extrabold">Hello, {name}</h1>
