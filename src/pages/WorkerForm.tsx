@@ -2,7 +2,8 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { PageHeader, Button, Card } from '@/components/ui';
-import type { Worker, EmploymentStatus, SponsorshipType } from '@/types/database';
+import { fullName } from '@/lib/compliance';
+import type { Worker, EmploymentStatus, SponsorshipType, Department } from '@/types/database';
 
 type AppVariant = 'compliance' | 'hr';
 const ORG_ID = '00000000-0000-0000-0000-0000000000d1';
@@ -15,8 +16,21 @@ export function WorkerForm({ app }: { app: AppVariant }) {
   const base = app === 'hr' ? '/hr/employees' : '/compliance/workers';
   const editing = Boolean(id);
   const [form, setForm] = useState<Partial<Worker>>({ sponsorship_type: 'sponsored', employment_status: 'onboarding', requires_dbs: false });
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [managers, setManagers] = useState<Worker[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      const [{ data: deps }, { data: mgrs }] = await Promise.all([
+        supabase.from('departments').select('*').order('name'),
+        supabase.from('workers').select('*').neq('employment_status', 'left'),
+      ]);
+      setDepartments((deps as Department[]) ?? []);
+      setManagers((mgrs as Worker[]) ?? []);
+    })();
+  }, []);
 
   useEffect(() => {
     if (!editing) return;
@@ -62,7 +76,26 @@ export function WorkerForm({ app }: { app: AppVariant }) {
         <Card className="p-6">
           <h2 className="mb-4 text-base font-bold text-ink">Employment</h2>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div><label className={labelCls}>Employee number</label><input className={field} value={form.employee_number ?? ''} onChange={(e) => set('employee_number', e.target.value)} /></div>
             <div><label className={labelCls}>Job title</label><input className={field} value={form.job_title ?? ''} onChange={(e) => set('job_title', e.target.value)} /></div>
+            <div><label className={labelCls}>Department</label>
+              <select className={field} value={form.department_id ?? ''} onChange={(e) => set('department_id', e.target.value || null)}>
+                <option value="">Not set</option>
+                {departments.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
+              </select>
+            </div>
+            <div><label className={labelCls}>Manager</label>
+              <select className={field} value={form.manager_id ?? ''} onChange={(e) => set('manager_id', e.target.value || null)}>
+                <option value="">Not set</option>
+                {managers.filter((m) => m.id !== id).map((m) => <option key={m.id} value={m.id}>{fullName(m)}</option>)}
+              </select>
+            </div>
+            <div><label className={labelCls}>Contract type</label>
+              <select className={field} value={form.contract_type ?? ''} onChange={(e) => set('contract_type', e.target.value || null)}>
+                <option value="">Not set</option>
+                <option value="permanent">Permanent</option><option value="fixed_term">Fixed term</option><option value="contractor">Contractor</option><option value="part_time">Part time</option>
+              </select>
+            </div>
             <div><label className={labelCls}>SOC code</label><input className={field} value={form.soc_code ?? ''} onChange={(e) => set('soc_code', e.target.value)} /></div>
             <div><label className={labelCls}>Annual salary (£)</label><input type="number" className={field} value={form.annual_salary ?? ''} onChange={(e) => set('annual_salary', e.target.value ? Number(e.target.value) : null)} /></div>
             <div><label className={labelCls}>Work location</label><input className={field} value={form.work_location ?? ''} onChange={(e) => set('work_location', e.target.value)} /></div>

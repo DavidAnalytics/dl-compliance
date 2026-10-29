@@ -1,7 +1,7 @@
 import {
   LayoutDashboard, Users, CalendarDays, CalendarOff, ShieldCheck, FileText,
   BadgeCheck, ClipboardList, Briefcase, ScrollText, History, PieChart,
-  LifeBuoy, Settings, type LucideIcon,
+  LifeBuoy, Settings, UserSearch, ClipboardCheck, FolderOpen, type LucideIcon,
 } from 'lucide-react';
 
 export interface NavItem {
@@ -16,6 +16,10 @@ export const hrNav: NavItem[] = [
   { to: '/hr/employees', label: 'Employees', icon: Users },
   { to: '/hr/leave', label: 'Leave & Holiday', icon: CalendarDays },
   { to: '/hr/absence', label: 'Absence', icon: CalendarOff },
+  { to: '/hr/recruitment', label: 'Recruitment', icon: UserSearch },
+  { to: '/hr/onboarding', label: 'Onboarding', icon: ClipboardCheck },
+  { to: '/hr/documents', label: 'Documents', icon: FolderOpen },
+  { to: '/hr/policies', label: 'Policies', icon: ScrollText },
 ];
 
 export const hrFooterNav: NavItem[] = [
@@ -30,7 +34,6 @@ export const complianceNav: NavItem[] = [
   { to: '/compliance/employment', label: 'Employment & CoS', icon: Briefcase },
   { to: '/compliance/absence', label: 'Absence Monitoring', icon: CalendarOff },
   { to: '/compliance/documents', label: 'Documents', icon: FileText },
-  { to: '/compliance/policies', label: 'Policies', icon: ScrollText },
   { to: '/compliance/reporting', label: 'Change Reporting', icon: ClipboardList },
   { to: '/compliance/audit', label: 'Audit Trail', icon: History },
   { to: '/compliance/reports', label: 'Reports', icon: PieChart },

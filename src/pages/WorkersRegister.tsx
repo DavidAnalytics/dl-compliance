@@ -4,7 +4,7 @@ import { Search, Plus } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { PageHeader, StatusPill, Button, Code, EmptyState, Card, Avatar } from '@/components/ui';
 import { workerStatus, fullName, formatDate } from '@/lib/compliance';
-import type { Worker, RightToWorkCheck } from '@/types/database';
+import type { Worker, RightToWorkCheck, Department } from '@/types/database';
 
 type AppVariant = 'compliance' | 'hr';
 
@@ -12,23 +12,34 @@ export function WorkersRegister({ app }: { app: AppVariant }) {
   const navigate = useNavigate();
   const base = app === 'hr' ? '/hr/employees' : '/compliance/workers';
   const [workers, setWorkers] = useState<Worker[]>([]);
+  const [depts, setDepts] = useState<Record<string, string>>({});
   const [rtwByWorker, setRtwByWorker] = useState<Record<string, RightToWorkCheck>>({});
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     (async () => {
-      const [{ data: w }, { data: rtw }] = await Promise.all([
+      const [{ data: w }, { data: rtw }, { data: d }] = await Promise.all([
         supabase.from('workers').select('*').order('last_name'),
         supabase.from('right_to_work_checks').select('*').order('checked_on', { ascending: false }),
+        supabase.from('departments').select('*'),
       ]);
       setWorkers((w as Worker[]) ?? []);
       const map: Record<string, RightToWorkCheck> = {};
       for (const c of (rtw as RightToWorkCheck[]) ?? []) if (!map[c.worker_id]) map[c.worker_id] = c;
       setRtwByWorker(map);
+      const dmap: Record<string, string> = {};
+      for (const dep of (d as Department[]) ?? []) dmap[dep.id] = dep.name;
+      setDepts(dmap);
       setLoading(false);
     })();
   }, []);
+
+  const nameOf = (wid: string | null) => {
+    if (!wid) return '—';
+    const m = workers.find((x) => x.id === wid);
+    return m ? fullName(m) : '—';
+  };
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -75,8 +86,8 @@ export function WorkersRegister({ app }: { app: AppVariant }) {
               <tr>
                 <th className="px-5 py-3">{app === 'hr' ? 'Employee' : 'Worker'}</th>
                 <th className="px-5 py-3">Role</th>
-                <th className="px-5 py-3">{app === 'hr' ? 'Location' : 'Sponsorship'}</th>
-                <th className="px-5 py-3">{app === 'hr' ? 'Start date' : 'Visa expiry'}</th>
+                <th className="px-5 py-3">{app === 'hr' ? 'Department' : 'Sponsorship'}</th>
+                <th className="px-5 py-3">{app === 'hr' ? 'Manager' : 'Visa expiry'}</th>
                 <th className="px-5 py-3">Status</th>
               </tr>
             </thead>
@@ -98,9 +109,9 @@ export function WorkersRegister({ app }: { app: AppVariant }) {
                       {w.job_title ?? '—'}{app !== 'hr' && w.soc_code && <span className="ml-2"><Code>{w.soc_code}</Code></span>}
                     </td>
                     <td className="px-5 py-3 capitalize text-ink-muted">
-                      {app === 'hr' ? (w.work_location ?? '—') : w.sponsorship_type.replace(/_/g, ' ')}
+                      {app === 'hr' ? (w.department_id ? depts[w.department_id] ?? '—' : '—') : w.sponsorship_type.replace(/_/g, ' ')}
                     </td>
-                    <td className="px-5 py-3 text-ink-muted">{formatDate(app === 'hr' ? w.start_date : w.visa_expiry)}</td>
+                    <td className="px-5 py-3 text-ink-muted">{app === 'hr' ? nameOf(w.manager_id) : formatDate(w.visa_expiry)}</td>
                     <td className="px-5 py-3">
                       {app === 'hr'
                         ? <span className="rounded-full bg-brand-50 px-2.5 py-1 text-xs font-semibold capitalize text-brand-700">{w.employment_status}</span>

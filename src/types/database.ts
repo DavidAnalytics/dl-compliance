@@ -69,8 +69,39 @@ export interface Worker {
   visa_start: string | null;
   visa_expiry: string | null;
   requires_dbs: boolean;
+  employee_number: string | null;
+  department_id: string | null;
+  manager_id: string | null;
+  contract_type: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface Department {
+  id: string;
+  organisation_id: string;
+  name: string;
+  created_at: string;
+}
+
+export interface EmergencyContact {
+  id: string;
+  worker_id: string;
+  name: string;
+  relationship: string | null;
+  phone: string | null;
+  email: string | null;
+  created_at: string;
+}
+
+export interface EmployeeEvent {
+  id: string;
+  worker_id: string;
+  event_type: string;
+  effective_date: string;
+  detail: string | null;
+  created_by: string | null;
+  created_at: string;
 }
 
 export interface RightToWorkCheck {
