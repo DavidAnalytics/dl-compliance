@@ -1,12 +1,16 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Search, Plus } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
-import { PageHeader, StatusPill, Button, Code, EmptyState } from '@/components/ui';
+import { PageHeader, StatusPill, Button, Code, EmptyState, Card, Avatar } from '@/components/ui';
 import { workerStatus, fullName, formatDate } from '@/lib/compliance';
 import type { Worker, RightToWorkCheck } from '@/types/database';
 
-export function WorkersRegister() {
+type AppVariant = 'compliance' | 'hr';
+
+export function WorkersRegister({ app }: { app: AppVariant }) {
   const navigate = useNavigate();
+  const base = app === 'hr' ? '/hr/employees' : '/compliance/workers';
   const [workers, setWorkers] = useState<Worker[]>([]);
   const [rtwByWorker, setRtwByWorker] = useState<Record<string, RightToWorkCheck>>({});
   const [query, setQuery] = useState('');
@@ -19,11 +23,8 @@ export function WorkersRegister() {
         supabase.from('right_to_work_checks').select('*').order('checked_on', { ascending: false }),
       ]);
       setWorkers((w as Worker[]) ?? []);
-      // keep the most recent check per worker
       const map: Record<string, RightToWorkCheck> = {};
-      for (const c of (rtw as RightToWorkCheck[]) ?? []) {
-        if (!map[c.worker_id]) map[c.worker_id] = c;
-      }
+      for (const c of (rtw as RightToWorkCheck[]) ?? []) if (!map[c.worker_id]) map[c.worker_id] = c;
       setRtwByWorker(map);
       setLoading(false);
     })();
@@ -33,78 +34,84 @@ export function WorkersRegister() {
     const q = query.trim().toLowerCase();
     if (!q) return workers;
     return workers.filter((w) =>
-      [w.first_name, w.last_name, w.job_title, w.nationality, w.cos_reference]
-        .filter(Boolean)
-        .some((f) => (f as string).toLowerCase().includes(q))
+      [w.first_name, w.last_name, w.job_title, w.nationality, w.cos_reference, w.work_location]
+        .filter(Boolean).some((f) => (f as string).toLowerCase().includes(q))
     );
   }, [workers, query]);
+
+  const title = app === 'hr' ? 'Employees' : 'Engaged Workers';
+  const subtitle = app === 'hr' ? 'Everyone on the team, with role and status.' : 'Every worker on the register, with live compliance status.';
+  const addLabel = app === 'hr' ? 'Add employee' : 'Add worker';
 
   return (
     <div>
       <PageHeader
-        title="Engaged Workers"
-        subtitle="Every worker on the register, with live compliance status."
-        actions={<Button onClick={() => navigate('/workers/new')}>Add worker</Button>}
+        title={title}
+        subtitle={subtitle}
+        actions={<Button onClick={() => navigate(`${base}/new`)}><span className="inline-flex items-center gap-1.5"><Plus size={16} /> {addLabel}</span></Button>}
       />
 
-      <div className="mb-4">
+      <div className="relative mb-4 max-w-sm">
+        <Search size={18} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-faint" />
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search by name, role, nationality or CoS"
-          className="w-full max-w-sm rounded-md border border-line bg-surface px-3 py-2 text-sm placeholder:text-content-muted focus:border-brass focus:outline-none"
+          placeholder="Search by name, role or location"
+          className="w-full rounded-xl border border-line bg-white py-2.5 pl-10 pr-4 text-sm placeholder:text-ink-faint focus:border-brand-300 focus:outline-none"
         />
       </div>
 
       {loading ? (
-        <p className="text-sm text-content-muted">Loading the register…</p>
+        <p className="text-sm text-ink-muted">Loading…</p>
       ) : filtered.length === 0 ? (
         <EmptyState
-          title={query ? 'No workers match that search' : 'No workers yet'}
-          hint={query ? 'Try a different name or clear the search.' : 'Add your first worker to start the register.'}
+          title={query ? 'No one matches that search' : 'No records yet'}
+          hint={query ? 'Try a different term or clear the search.' : `Add your first ${app === 'hr' ? 'employee' : 'worker'} to begin.`}
         />
       ) : (
-        <div className="overflow-hidden rounded-xl border border-line bg-surface shadow-card">
+        <Card className="overflow-hidden">
           <table className="w-full text-sm">
-            <thead className="border-b border-line bg-paper/60 text-left text-xs text-content-muted">
+            <thead className="border-b border-line bg-canvas/50 text-left text-xs font-semibold text-ink-faint">
               <tr>
-                <th className="px-4 py-3 font-medium">Worker</th>
-                <th className="px-4 py-3 font-medium">Role</th>
-                <th className="px-4 py-3 font-medium">Sponsorship</th>
-                <th className="px-4 py-3 font-medium">Visa expiry</th>
-                <th className="px-4 py-3 font-medium">Status</th>
+                <th className="px-5 py-3">{app === 'hr' ? 'Employee' : 'Worker'}</th>
+                <th className="px-5 py-3">Role</th>
+                <th className="px-5 py-3">{app === 'hr' ? 'Location' : 'Sponsorship'}</th>
+                <th className="px-5 py-3">{app === 'hr' ? 'Start date' : 'Visa expiry'}</th>
+                <th className="px-5 py-3">Status</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-line">
               {filtered.map((w) => {
                 const status = workerStatus(w, rtwByWorker[w.id]);
                 return (
-                  <tr
-                    key={w.id}
-                    onClick={() => navigate(`/workers/${w.id}`)}
-                    className="cursor-pointer transition hover:bg-paper"
-                  >
-                    <td className="px-4 py-3">
-                      <p className="font-medium text-content-strong">{fullName(w)}</p>
-                      <p className="text-xs text-content-muted">{w.nationality ?? '—'}</p>
+                  <tr key={w.id} onClick={() => navigate(`${base}/${w.id}`)} className="cursor-pointer transition hover:bg-canvas/60">
+                    <td className="px-5 py-3">
+                      <div className="flex items-center gap-3">
+                        <Avatar name={fullName(w)} size="sm" />
+                        <div>
+                          <p className="font-semibold text-ink">{fullName(w)}</p>
+                          <p className="text-xs text-ink-faint">{w.nationality ?? '—'}</p>
+                        </div>
+                      </div>
                     </td>
-                    <td className="px-4 py-3 text-content">
-                      {w.job_title ?? '—'}
-                      {w.soc_code && <span className="ml-2"><Code>{w.soc_code}</Code></span>}
+                    <td className="px-5 py-3 text-ink-muted">
+                      {w.job_title ?? '—'}{app !== 'hr' && w.soc_code && <span className="ml-2"><Code>{w.soc_code}</Code></span>}
                     </td>
-                    <td className="px-4 py-3 capitalize text-content">
-                      {w.sponsorship_type.replace(/_/g, ' ')}
+                    <td className="px-5 py-3 capitalize text-ink-muted">
+                      {app === 'hr' ? (w.work_location ?? '—') : w.sponsorship_type.replace(/_/g, ' ')}
                     </td>
-                    <td className="px-4 py-3 text-content">{formatDate(w.visa_expiry)}</td>
-                    <td className="px-4 py-3">
-                      <StatusPill rating={status.rating} label={status.headline} />
+                    <td className="px-5 py-3 text-ink-muted">{formatDate(app === 'hr' ? w.start_date : w.visa_expiry)}</td>
+                    <td className="px-5 py-3">
+                      {app === 'hr'
+                        ? <span className="rounded-full bg-brand-50 px-2.5 py-1 text-xs font-semibold capitalize text-brand-700">{w.employment_status}</span>
+                        : <StatusPill rating={status.rating} label={status.headline} />}
                     </td>
                   </tr>
                 );
               })}
             </tbody>
           </table>
-        </div>
+        </Card>
       )}
     </div>
   );

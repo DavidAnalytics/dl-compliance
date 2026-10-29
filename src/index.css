@@ -3,18 +3,17 @@
 @tailwind utilities;
 
 :root {
-  font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
 
 body {
   margin: 0;
-  background: #f5f6f8;
-  color: #16243d;
+  background: #f4f4fb;
+  color: #1f1b3a;
 }
 
-/* Respect reduced motion */
 @media (prefers-reduced-motion: reduce) {
   * {
     animation-duration: 0.01ms !important;
@@ -22,8 +21,17 @@ body {
   }
 }
 
-/* Visible keyboard focus everywhere */
 :focus-visible {
-  outline: 2px solid #b38a3c;
+  outline: 2px solid #635be5;
   outline-offset: 2px;
+}
+
+/* Subtle scrollbars inside the app */
+.thin-scroll::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.thin-scroll::-webkit-scrollbar-thumb {
+  background: rgba(31, 27, 58, 0.15);
+  border-radius: 8px;
 }
