@@ -153,7 +153,7 @@ export function AppShell({ app, children }: { app: AppKey; children: React.React
                     <ul className="max-h-80 overflow-auto thin-scroll">
                       {alerts.map((a) => (
                         <li key={a.id} className="flex gap-2 rounded-lg px-2 py-2 hover:bg-canvas">
-                          <span className={`mt-1 h-1.5 w-1.5 shrink-0 rounded-full ${a.severity === 'red' ? 'bg-rag-red' : 'bg-rag-amber'}`} />
+                          <span className={`mt-1 h-1.5 w-1.5 shrink-0 rounded-full ${a.severity === 'red' ? 'bg-rag-red' : a.severity === 'info' ? 'bg-brand-500' : 'bg-rag-amber'}`} />
                           <div className="min-w-0"><p className="text-sm font-semibold text-ink">{a.title}</p><p className="truncate text-xs text-ink-muted">{a.detail}</p></div>
                         </li>
                       ))}
