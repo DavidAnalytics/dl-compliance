@@ -43,9 +43,18 @@ export const complianceFooterNav: NavItem[] = [
   { to: '/compliance/settings', label: 'Settings', icon: Settings },
 ];
 
+export const workerNav: NavItem[] = [
+  { to: '/me', label: 'Overview', icon: LayoutDashboard, end: true },
+  { to: '/me/details', label: 'My Details', icon: Users },
+  { to: '/me/leave', label: 'My Leave', icon: CalendarDays },
+  { to: '/me/documents', label: 'My Documents', icon: FolderOpen },
+  { to: '/me/policies', label: 'Policies', icon: ScrollText },
+];
+
 export const APP_META = {
   hr: { name: 'DL People', tag: 'Human Resources', icon: Users, home: '/hr' },
   compliance: { name: 'DL Compliance', tag: 'Sponsor Duties', icon: ShieldCheck, home: '/compliance' },
+  employee: { name: 'DL People', tag: 'My space', icon: Users, home: '/me' },
 } as const;
 
 export type AppKey = keyof typeof APP_META;

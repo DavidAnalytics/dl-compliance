@@ -7,8 +7,9 @@ import { Avatar } from '@/components/ui';
 
 interface AlertRow { id: string; severity: string; title: string; detail: string | null; due_date: string | null; }
 import {
-  hrNav, hrFooterNav, complianceNav, complianceFooterNav, APP_META, type AppKey, type NavItem,
+  hrNav, hrFooterNav, complianceNav, complianceFooterNav, workerNav, APP_META, type AppKey, type NavItem,
 } from '@/config/nav';
+import { isStaff } from '@/lib/roles';
 
 function SidebarLink({ item }: { item: NavItem }) {
   const Icon = item.icon;
@@ -37,15 +38,19 @@ export function AppShell({ app, children }: { app: AppKey; children: React.React
   const [bellOpen, setBellOpen] = useState(false);
   const [alerts, setAlerts] = useState<AlertRow[]>([]);
 
+  const canSeeAlerts = isStaff(profile?.role);
   useEffect(() => {
+    if (!canSeeAlerts) return;
     supabase.from('alerts').select('id,severity,title,detail,due_date').eq('status', 'open').order('due_date')
       .then(({ data }) => setAlerts((data as AlertRow[]) ?? []));
-  }, []);
+  }, [canSeeAlerts]);
 
+  const employee = app === 'employee';
+  const staff = isStaff(profile?.role);
   const meta = APP_META[app];
   const AppIcon = meta.icon;
-  const nav = app === 'hr' ? hrNav : complianceNav;
-  const footer = app === 'hr' ? hrFooterNav : complianceFooterNav;
+  const nav = employee ? workerNav : app === 'hr' ? hrNav : complianceNav;
+  const footer = employee ? [] : app === 'hr' ? hrFooterNav : complianceFooterNav;
   const other: AppKey = app === 'hr' ? 'compliance' : 'hr';
 
   const displayName = profile?.full_name || session?.user.email || 'User';
@@ -90,20 +95,22 @@ export function AppShell({ app, children }: { app: AppKey; children: React.React
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Header */}
         <header className="sticky top-0 z-10 flex items-center gap-4 border-b border-line bg-canvas/80 px-8 py-4 backdrop-blur">
-          {/* App switch */}
-          <div className="flex items-center gap-1 rounded-xl bg-white p-1 shadow-card">
-            {(['hr', 'compliance'] as AppKey[]).map((k) => (
-              <button
-                key={k}
-                onClick={() => navigate(APP_META[k].home)}
-                className={`rounded-lg px-3 py-1.5 text-xs font-bold transition ${
-                  k === app ? 'bg-brand-500 text-white' : 'text-ink-muted hover:text-ink'
-                }`}
-              >
-                {k === 'hr' ? 'HR' : 'Compliance'}
-              </button>
-            ))}
-          </div>
+          {/* App switch (staff only) */}
+          {staff && !employee && (
+            <div className="flex items-center gap-1 rounded-xl bg-white p-1 shadow-card">
+              {(['hr', 'compliance'] as AppKey[]).map((k) => (
+                <button
+                  key={k}
+                  onClick={() => navigate(APP_META[k].home)}
+                  className={`rounded-lg px-3 py-1.5 text-xs font-bold transition ${
+                    k === app ? 'bg-brand-500 text-white' : 'text-ink-muted hover:text-ink'
+                  }`}
+                >
+                  {k === 'hr' ? 'HR' : 'Compliance'}
+                </button>
+              ))}
+            </div>
+          )}
 
           {/* Search */}
           <div className="relative hidden flex-1 md:block">
@@ -115,6 +122,7 @@ export function AppShell({ app, children }: { app: AppKey; children: React.React
           </div>
 
           <div className="ml-auto flex items-center gap-2">
+            {staff && (
             <div className="relative">
               <button onClick={() => setBellOpen((o) => !o)} className="relative rounded-xl border border-line bg-white p-2.5 text-ink-muted hover:text-ink" aria-label="Notifications">
                 <Bell size={18} />
@@ -140,9 +148,12 @@ export function AppShell({ app, children }: { app: AppKey; children: React.React
                 </div>
               )}
             </div>
+            )}
+            {staff && (
             <button className="rounded-xl border border-line bg-white p-2.5 text-ink-muted hover:text-ink" aria-label="Messages">
               <Mail size={18} />
             </button>
+            )}
 
             {/* Profile */}
             <div className="relative">
@@ -156,9 +167,11 @@ export function AppShell({ app, children }: { app: AppKey; children: React.React
               </button>
               {menuOpen && (
                 <div className="absolute right-0 mt-2 w-44 rounded-xl border border-line bg-white p-1 shadow-pop">
-                  <button onClick={() => navigate(APP_META[other].home)} className="block w-full rounded-lg px-3 py-2 text-left text-sm text-ink hover:bg-canvas">
-                    Switch to {APP_META[other].name}
-                  </button>
+                  {staff && !employee && (
+                    <button onClick={() => navigate(APP_META[other].home)} className="block w-full rounded-lg px-3 py-2 text-left text-sm text-ink hover:bg-canvas">
+                      Switch to {APP_META[other].name}
+                    </button>
+                  )}
                   <button onClick={handleSignOut} className="block w-full rounded-lg px-3 py-2 text-left text-sm text-ink hover:bg-canvas">
                     Log out
                   </button>

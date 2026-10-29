@@ -1,6 +1,8 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { AppShell } from '@/components/AppShell';
+import { useAuth } from '@/contexts/AuthContext';
+import { isWorker } from '@/lib/roles';
 import type { AppKey } from '@/config/nav';
 import { Login } from '@/pages/Login';
 import { Home } from '@/pages/Home';
@@ -23,54 +25,78 @@ import { WorkerForm } from '@/pages/WorkerForm';
 import { WorkerProfile } from '@/pages/WorkerProfile';
 import { Policies } from '@/pages/Policies';
 import { ModulePlaceholder } from '@/pages/ModulePlaceholder';
+import { MyOverview } from '@/pages/me/MyOverview';
+import { MyDetails } from '@/pages/me/MyDetails';
+import { MyLeave } from '@/pages/me/MyLeave';
+import { MyDocuments } from '@/pages/me/MyDocuments';
+import { MyPolicies } from '@/pages/me/MyPolicies';
 
-function Shell({ app, children }: { app: AppKey; children: React.ReactNode }) {
-  return (
-    <ProtectedRoute>
-      <AppShell app={app}>{children}</AppShell>
-    </ProtectedRoute>
-  );
+// Employees (workers) cannot reach staff areas.
+function RequireStaff({ children }: { children: React.ReactNode }) {
+  const { profile, loading } = useAuth();
+  if (loading || !profile) return <div className="flex min-h-screen items-center justify-center text-ink-faint">Loading…</div>;
+  if (isWorker(profile.role)) return <Navigate to="/me" replace />;
+  return <>{children}</>;
 }
 
-const ph = (title: string, description: string, phase: string) => (
-  <ModulePlaceholder title={title} description={description} phase={phase} />
-);
+function StaffShell({ app, children }: { app: AppKey; children: React.ReactNode }) {
+  return <ProtectedRoute><RequireStaff><AppShell app={app}>{children}</AppShell></RequireStaff></ProtectedRoute>;
+}
+function EmpShell({ children }: { children: React.ReactNode }) {
+  return <ProtectedRoute><AppShell app="employee">{children}</AppShell></ProtectedRoute>;
+}
+
+function RoleHome() {
+  const { profile, loading } = useAuth();
+  if (loading) return <div className="flex min-h-screen items-center justify-center text-ink-faint">Loading…</div>;
+  if (isWorker(profile?.role)) return <Navigate to="/me" replace />;
+  return <Home />;
+}
+
+const ph = (title: string, description: string, phase: string) => <ModulePlaceholder title={title} description={description} phase={phase} />;
 
 export function App() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
-      <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
+      <Route path="/" element={<ProtectedRoute><RoleHome /></ProtectedRoute>} />
 
-      {/* HR app */}
-      <Route path="/hr" element={<Shell app="hr"><HrDashboard /></Shell>} />
-      <Route path="/hr/employees" element={<Shell app="hr"><WorkersRegister app="hr" /></Shell>} />
-      <Route path="/hr/employees/new" element={<Shell app="hr"><WorkerForm app="hr" /></Shell>} />
-      <Route path="/hr/employees/:id" element={<Shell app="hr"><WorkerProfile app="hr" /></Shell>} />
-      <Route path="/hr/employees/:id/edit" element={<Shell app="hr"><WorkerForm app="hr" /></Shell>} />
-      <Route path="/hr/leave" element={<Shell app="hr"><Leave /></Shell>} />
-      <Route path="/hr/absence" element={<Shell app="hr"><Absence /></Shell>} />
-      <Route path="/hr/recruitment" element={<Shell app="hr"><Recruitment /></Shell>} />
-      <Route path="/hr/onboarding" element={<Shell app="hr"><Onboarding /></Shell>} />
-      <Route path="/hr/documents" element={<Shell app="hr"><HrDocuments /></Shell>} />
-      <Route path="/hr/policies" element={<Shell app="hr"><Policies /></Shell>} />
-      <Route path="/hr/support" element={<Shell app="hr">{ph('Support', 'Raise and track support requests.', 'a later step')}</Shell>} />
-      <Route path="/hr/settings" element={<Shell app="hr">{ph('Settings', 'Leave entitlements, departments, team and preferences.', 'a later step')}</Shell>} />
+      {/* Employee portal */}
+      <Route path="/me" element={<EmpShell><MyOverview /></EmpShell>} />
+      <Route path="/me/details" element={<EmpShell><MyDetails /></EmpShell>} />
+      <Route path="/me/leave" element={<EmpShell><MyLeave /></EmpShell>} />
+      <Route path="/me/documents" element={<EmpShell><MyDocuments /></EmpShell>} />
+      <Route path="/me/policies" element={<EmpShell><MyPolicies /></EmpShell>} />
 
-      {/* Compliance app */}
-      <Route path="/compliance" element={<Shell app="compliance"><ComplianceDashboard /></Shell>} />
-      <Route path="/compliance/workers" element={<Shell app="compliance"><WorkersRegister app="compliance" /></Shell>} />
-      <Route path="/compliance/workers/new" element={<Shell app="compliance"><WorkerForm app="compliance" /></Shell>} />
-      <Route path="/compliance/workers/:id" element={<Shell app="compliance"><WorkerProfile app="compliance" /></Shell>} />
-      <Route path="/compliance/workers/:id/edit" element={<Shell app="compliance"><WorkerForm app="compliance" /></Shell>} />
-      <Route path="/compliance/right-to-work" element={<Shell app="compliance"><RightToWork /></Shell>} />
-      <Route path="/compliance/employment" element={<Shell app="compliance"><Employment /></Shell>} />
-      <Route path="/compliance/absence" element={<Shell app="compliance"><AbsenceMonitoring /></Shell>} />
-      <Route path="/compliance/documents" element={<Shell app="compliance"><ComplianceDocuments /></Shell>} />
-      <Route path="/compliance/reporting" element={<Shell app="compliance"><ChangeReporting /></Shell>} />
-      <Route path="/compliance/audit" element={<Shell app="compliance"><AuditTrail /></Shell>} />
-      <Route path="/compliance/reports" element={<Shell app="compliance"><Reports /></Shell>} />
-      <Route path="/compliance/settings" element={<Shell app="compliance">{ph('Settings', 'Organisation and licence, key personnel, going rates and alert thresholds.', 'an upcoming step')}</Shell>} />
+      {/* HR app (staff only) */}
+      <Route path="/hr" element={<StaffShell app="hr"><HrDashboard /></StaffShell>} />
+      <Route path="/hr/employees" element={<StaffShell app="hr"><WorkersRegister app="hr" /></StaffShell>} />
+      <Route path="/hr/employees/new" element={<StaffShell app="hr"><WorkerForm app="hr" /></StaffShell>} />
+      <Route path="/hr/employees/:id" element={<StaffShell app="hr"><WorkerProfile app="hr" /></StaffShell>} />
+      <Route path="/hr/employees/:id/edit" element={<StaffShell app="hr"><WorkerForm app="hr" /></StaffShell>} />
+      <Route path="/hr/leave" element={<StaffShell app="hr"><Leave /></StaffShell>} />
+      <Route path="/hr/absence" element={<StaffShell app="hr"><Absence /></StaffShell>} />
+      <Route path="/hr/recruitment" element={<StaffShell app="hr"><Recruitment /></StaffShell>} />
+      <Route path="/hr/onboarding" element={<StaffShell app="hr"><Onboarding /></StaffShell>} />
+      <Route path="/hr/documents" element={<StaffShell app="hr"><HrDocuments /></StaffShell>} />
+      <Route path="/hr/policies" element={<StaffShell app="hr"><Policies /></StaffShell>} />
+      <Route path="/hr/support" element={<StaffShell app="hr">{ph('Support', 'Raise and track support requests.', 'a later step')}</StaffShell>} />
+      <Route path="/hr/settings" element={<StaffShell app="hr">{ph('Settings', 'Leave entitlements, departments, team and preferences.', 'a later step')}</StaffShell>} />
+
+      {/* Compliance app (staff only) */}
+      <Route path="/compliance" element={<StaffShell app="compliance"><ComplianceDashboard /></StaffShell>} />
+      <Route path="/compliance/workers" element={<StaffShell app="compliance"><WorkersRegister app="compliance" /></StaffShell>} />
+      <Route path="/compliance/workers/new" element={<StaffShell app="compliance"><WorkerForm app="compliance" /></StaffShell>} />
+      <Route path="/compliance/workers/:id" element={<StaffShell app="compliance"><WorkerProfile app="compliance" /></StaffShell>} />
+      <Route path="/compliance/workers/:id/edit" element={<StaffShell app="compliance"><WorkerForm app="compliance" /></StaffShell>} />
+      <Route path="/compliance/right-to-work" element={<StaffShell app="compliance"><RightToWork /></StaffShell>} />
+      <Route path="/compliance/employment" element={<StaffShell app="compliance"><Employment /></StaffShell>} />
+      <Route path="/compliance/absence" element={<StaffShell app="compliance"><AbsenceMonitoring /></StaffShell>} />
+      <Route path="/compliance/documents" element={<StaffShell app="compliance"><ComplianceDocuments /></StaffShell>} />
+      <Route path="/compliance/reporting" element={<StaffShell app="compliance"><ChangeReporting /></StaffShell>} />
+      <Route path="/compliance/audit" element={<StaffShell app="compliance"><AuditTrail /></StaffShell>} />
+      <Route path="/compliance/reports" element={<StaffShell app="compliance"><Reports /></StaffShell>} />
+      <Route path="/compliance/settings" element={<StaffShell app="compliance">{ph('Settings', 'Organisation and licence, key personnel, going rates and alert thresholds.', 'an upcoming step')}</StaffShell>} />
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
