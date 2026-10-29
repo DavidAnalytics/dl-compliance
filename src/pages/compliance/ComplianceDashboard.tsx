@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShieldCheck, Users, AlertTriangle, ArrowRight } from 'lucide-react';
+import { ShieldCheck, Users, AlertTriangle, ArrowRight, Info } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { Card, SectionLabel, StatusPill, Avatar } from '@/components/ui';
 import { CRS_DOMAINS, ratingFor, type CrsDomain } from '@/lib/crs';
@@ -106,23 +106,27 @@ export function ComplianceDashboard() {
             const score = (snapshot?.[d.key] as number | null) ?? 0;
             const rating = ratingFor(score);
             return (
-              <Card key={d.key} className="p-4">
-                <div className="flex items-center justify-between">
-                  <p className="text-sm font-semibold text-ink">{d.label}</p>
+              <Card key={d.key} className="group relative p-4">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-1.5">
+                    <p className="text-sm font-semibold text-ink">{d.label}</p>
+                    <span tabIndex={0} aria-label={d.hint} className="text-ink-faint transition hover:text-brand-500 focus:text-brand-500 focus:outline-none">
+                      <Info size={14} />
+                    </span>
+                  </div>
                   <span className={`text-sm font-bold ${ragText[rating]}`}>{score}</span>
                 </div>
                 <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-canvas">
                   <div className={`h-full rounded-full ${ragBar[rating]}`} style={{ width: `${score}%` }} />
+                </div>
+                <div className="pointer-events-none absolute left-4 right-4 top-full z-20 mt-2 rounded-xl bg-ink px-3.5 py-2.5 text-xs leading-relaxed text-white opacity-0 shadow-pop transition-opacity duration-150 group-hover:opacity-100 group-focus-within:opacity-100">
+                  {d.hint}
                 </div>
               </Card>
             );
           })}
         </div>
       </div>
-
-      <p className="pt-2 text-xs text-ink-faint">
-        Internal record-keeping system. Not a substitute for legal advice. The score and alerts recalculate automatically once the nightly engine is live.
-      </p>
     </div>
   );
 }

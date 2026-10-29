@@ -31,11 +31,21 @@ import { MyLeave } from '@/pages/me/MyLeave';
 import { MyDocuments } from '@/pages/me/MyDocuments';
 import { MyPolicies } from '@/pages/me/MyPolicies';
 
+const Loading = () => <div className="flex min-h-screen items-center justify-center text-ink-faint">Loading…</div>;
+
 // Employees (workers) cannot reach staff areas.
 function RequireStaff({ children }: { children: React.ReactNode }) {
   const { profile, loading } = useAuth();
-  if (loading || !profile) return <div className="flex min-h-screen items-center justify-center text-ink-faint">Loading…</div>;
+  if (loading || !profile) return <Loading />;
   if (isWorker(profile.role)) return <Navigate to="/me" replace />;
+  return <>{children}</>;
+}
+
+// Staff (admin/AO/HR) have no employee self-service portal — send them to their home.
+function RequireWorker({ children }: { children: React.ReactNode }) {
+  const { profile, loading } = useAuth();
+  if (loading || !profile) return <Loading />;
+  if (!isWorker(profile.role)) return <Navigate to="/" replace />;
   return <>{children}</>;
 }
 
@@ -43,12 +53,12 @@ function StaffShell({ app, children }: { app: AppKey; children: React.ReactNode 
   return <ProtectedRoute><RequireStaff><AppShell app={app}>{children}</AppShell></RequireStaff></ProtectedRoute>;
 }
 function EmpShell({ children }: { children: React.ReactNode }) {
-  return <ProtectedRoute><AppShell app="employee">{children}</AppShell></ProtectedRoute>;
+  return <ProtectedRoute><RequireWorker><AppShell app="employee">{children}</AppShell></RequireWorker></ProtectedRoute>;
 }
 
 function RoleHome() {
   const { profile, loading } = useAuth();
-  if (loading) return <div className="flex min-h-screen items-center justify-center text-ink-faint">Loading…</div>;
+  if (loading) return <Loading />;
   if (isWorker(profile?.role)) return <Navigate to="/me" replace />;
   return <Home />;
 }

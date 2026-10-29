@@ -8,7 +8,7 @@ import type { Worker } from '@/types/database';
 
 const ORG_ID = '00000000-0000-0000-0000-0000000000d1';
 const field = 'w-full rounded-xl border border-line bg-white px-3.5 py-2.5 text-sm focus:border-brand-300 focus:outline-none';
-const CATEGORIES = ['Contract', 'Offer letter', 'Handbook', 'Policy', 'ID', 'Right to work', 'Other'];
+const CATEGORIES = ['Contract', 'Offer letter', 'Handbook', 'Policy', 'ID', 'Passport', 'National Insurance', 'Visa / BRP', 'Right to work', 'DBS', 'Other'];
 
 interface DocRow {
   id: string; title: string; category: string | null; worker_id: string | null;

@@ -37,7 +37,7 @@ export function MyOverview() {
 
   if (loading) return <p className="text-sm text-ink-muted">Loading…</p>;
 
-  const name = worker ? fullName(worker).split(' ')[0] : (session?.user.email ?? 'there');
+  const name = worker ? fullName(worker).split(' ')[0] : 'there';
   const taken = requests.filter((r) => r.status === 'approved').reduce((s, r) => s + (r.working_days ?? 0), 0);
   const entitlement = ent ? ent.entitlement_days + ent.carried_over_days : 28;
   const pending = requests.filter((r) => r.status === 'pending');
