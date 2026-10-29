@@ -1,0 +1,7 @@
+-- ============================================================================
+-- Migration 0012: schedule the nightly alert digest email (06:15 UTC)
+-- Already applied to the live project. Calls the alerts-digest edge function,
+-- which reads RESEND_API_KEY from its secret and uses the service role to read
+-- alerts. The anon key below is a public key.
+-- ============================================================================
+-- select cron.schedule('alerts-digest-email', '15 6 * * *', $$ net.http_post(...) $$);

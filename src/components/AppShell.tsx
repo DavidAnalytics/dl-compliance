@@ -1,8 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { Bell, Mail, Search, LogOut, ChevronDown } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/lib/supabase';
 import { Avatar } from '@/components/ui';
+
+interface AlertRow { id: string; severity: string; title: string; detail: string | null; due_date: string | null; }
 import {
   hrNav, hrFooterNav, complianceNav, complianceFooterNav, APP_META, type AppKey, type NavItem,
 } from '@/config/nav';
@@ -31,6 +34,13 @@ export function AppShell({ app, children }: { app: AppKey; children: React.React
   const { profile, session, signOut } = useAuth();
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [bellOpen, setBellOpen] = useState(false);
+  const [alerts, setAlerts] = useState<AlertRow[]>([]);
+
+  useEffect(() => {
+    supabase.from('alerts').select('id,severity,title,detail,due_date').eq('status', 'open').order('due_date')
+      .then(({ data }) => setAlerts((data as AlertRow[]) ?? []));
+  }, []);
 
   const meta = APP_META[app];
   const AppIcon = meta.icon;
@@ -105,10 +115,31 @@ export function AppShell({ app, children }: { app: AppKey; children: React.React
           </div>
 
           <div className="ml-auto flex items-center gap-2">
-            <button className="relative rounded-xl border border-line bg-white p-2.5 text-ink-muted hover:text-ink" aria-label="Notifications">
-              <Bell size={18} />
-              <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-rag-red" />
-            </button>
+            <div className="relative">
+              <button onClick={() => setBellOpen((o) => !o)} className="relative rounded-xl border border-line bg-white p-2.5 text-ink-muted hover:text-ink" aria-label="Notifications">
+                <Bell size={18} />
+                {alerts.length > 0 && (
+                  <span className="absolute -right-1 -top-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-rag-red px-1 text-[10px] font-bold text-white">{alerts.length}</span>
+                )}
+              </button>
+              {bellOpen && (
+                <div className="absolute right-0 mt-2 w-80 rounded-xl border border-line bg-white p-2 shadow-pop">
+                  <p className="px-2 py-1.5 text-xs font-bold uppercase tracking-wide text-ink-faint">Alerts</p>
+                  {alerts.length === 0 ? (
+                    <p className="px-2 py-4 text-center text-sm text-ink-muted">Nothing needs attention.</p>
+                  ) : (
+                    <ul className="max-h-80 overflow-auto thin-scroll">
+                      {alerts.map((a) => (
+                        <li key={a.id} className="flex gap-2 rounded-lg px-2 py-2 hover:bg-canvas">
+                          <span className={`mt-1 h-1.5 w-1.5 shrink-0 rounded-full ${a.severity === 'red' ? 'bg-rag-red' : 'bg-rag-amber'}`} />
+                          <div className="min-w-0"><p className="text-sm font-semibold text-ink">{a.title}</p><p className="truncate text-xs text-ink-muted">{a.detail}</p></div>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              )}
+            </div>
             <button className="rounded-xl border border-line bg-white p-2.5 text-ink-muted hover:text-ink" aria-label="Messages">
               <Mail size={18} />
             </button>

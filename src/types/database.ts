@@ -229,6 +229,7 @@ export interface Policy {
   effective_date: string | null;
   review_date: string | null;
   is_published: boolean;
+  file_path: string | null;
   created_at: string;
   updated_at: string;
 }
