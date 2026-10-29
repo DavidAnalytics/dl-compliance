@@ -20,6 +20,48 @@ export type AlertType =
   | 'role_review_due' | 'unexplained_absence';
 export type AlertSeverity = 'info' | 'amber' | 'red';
 export type AlertStatus = 'open' | 'acknowledged' | 'resolved' | 'dismissed';
+export type LeaveStatus = 'pending' | 'approved' | 'rejected' | 'cancelled';
+
+export interface LeaveType {
+  id: string;
+  organisation_id: string;
+  name: string;
+  paid: boolean;
+  colour: string | null;
+  active: boolean;
+  created_at: string;
+}
+
+export interface LeaveEntitlement {
+  id: string;
+  worker_id: string;
+  year: number;
+  entitlement_days: number;
+  carried_over_days: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface LeaveRequest {
+  id: string;
+  worker_id: string;
+  leave_type_id: string | null;
+  start_date: string;
+  end_date: string;
+  working_days: number | null;
+  status: LeaveStatus;
+  reason: string | null;
+  decided_by: string | null;
+  decided_at: string | null;
+  decision_comment: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface BankHoliday {
+  holiday_date: string;
+  title: string | null;
+}
 
 export interface Organisation {
   id: string;

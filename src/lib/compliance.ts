@@ -66,6 +66,28 @@ export function formatDate(dateStr: string | null): string {
   });
 }
 
+// Count working days (Mon-Fri) in an inclusive date range, excluding the given
+// bank holiday dates (YYYY-MM-DD strings).
+export function workingDaysBetween(start: string, end: string, holidays: Set<string>): number {
+  const s = new Date(start);
+  const e = new Date(end);
+  if (e < s) return 0;
+  let count = 0;
+  const d = new Date(s);
+  while (d <= e) {
+    const day = d.getDay(); // 0 Sun, 6 Sat
+    const iso = d.toISOString().slice(0, 10);
+    if (day !== 0 && day !== 6 && !holidays.has(iso)) count++;
+    d.setDate(d.getDate() + 1);
+  }
+  return count;
+}
+
+// Do two inclusive date ranges overlap?
+export function rangesOverlap(aStart: string, aEnd: string, bStart: string, bEnd: string): boolean {
+  return aStart <= bEnd && bStart <= aEnd;
+}
+
 export function formatMoney(value: number | null): string {
   if (value === null || value === undefined) return '—';
   return new Intl.NumberFormat('en-GB', {
