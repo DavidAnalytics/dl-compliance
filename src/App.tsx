@@ -7,6 +7,9 @@ import { Home } from '@/pages/Home';
 import { HrDashboard } from '@/pages/hr/HrDashboard';
 import { Leave } from '@/pages/hr/Leave';
 import { Absence } from '@/pages/hr/Absence';
+import { Recruitment } from '@/pages/hr/Recruitment';
+import { Onboarding } from '@/pages/hr/Onboarding';
+import { Documents as HrDocuments } from '@/pages/hr/Documents';
 import { ComplianceDashboard } from '@/pages/compliance/ComplianceDashboard';
 import { WorkersRegister } from '@/pages/WorkersRegister';
 import { WorkerForm } from '@/pages/WorkerForm';
@@ -40,9 +43,9 @@ export function App() {
       <Route path="/hr/employees/:id/edit" element={<Shell app="hr"><WorkerForm app="hr" /></Shell>} />
       <Route path="/hr/leave" element={<Shell app="hr"><Leave /></Shell>} />
       <Route path="/hr/absence" element={<Shell app="hr"><Absence /></Shell>} />
-      <Route path="/hr/recruitment" element={<Shell app="hr">{ph('Recruitment', 'Vacancies, hiring requests and applicant stages.', 'an upcoming step')}</Shell>} />
-      <Route path="/hr/onboarding" element={<Shell app="hr">{ph('Onboarding', 'New starter checklists, equipment, training and induction.', 'an upcoming step')}</Shell>} />
-      <Route path="/hr/documents" element={<Shell app="hr">{ph('Documents', 'Contracts, offer letters and HR documents, with expiry reminders.', 'an upcoming step')}</Shell>} />
+      <Route path="/hr/recruitment" element={<Shell app="hr"><Recruitment /></Shell>} />
+      <Route path="/hr/onboarding" element={<Shell app="hr"><Onboarding /></Shell>} />
+      <Route path="/hr/documents" element={<Shell app="hr"><HrDocuments /></Shell>} />
       <Route path="/hr/policies" element={<Shell app="hr"><Policies /></Shell>} />
       <Route path="/hr/support" element={<Shell app="hr">{ph('Support', 'Raise and track support requests.', 'a later step')}</Shell>} />
       <Route path="/hr/settings" element={<Shell app="hr">{ph('Settings', 'Leave entitlements, departments, team and preferences.', 'a later step')}</Shell>} />

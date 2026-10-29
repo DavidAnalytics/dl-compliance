@@ -18,8 +18,8 @@ export function StatusPill({ rating, label }: { rating: RagRating; label: string
 }
 
 // --- Card -------------------------------------------------------------------
-export function Card({ children, className = '' }: { children: ReactNode; className?: string }) {
-  return <div className={`rounded-2xl border border-line bg-surface shadow-card ${className}`}>{children}</div>;
+export function Card({ children, className = '', onClick }: { children: ReactNode; className?: string; onClick?: () => void }) {
+  return <div onClick={onClick} className={`rounded-2xl border border-line bg-surface shadow-card ${className}`}>{children}</div>;
 }
 
 // --- Page header ------------------------------------------------------------

@@ -63,6 +63,48 @@ export interface BankHoliday {
   title: string | null;
 }
 
+export interface Vacancy {
+  id: string;
+  organisation_id: string;
+  title: string;
+  department_id: string | null;
+  hiring_manager_id: string | null;
+  description: string | null;
+  openings: number;
+  status: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Candidate {
+  id: string;
+  vacancy_id: string;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  stage: string;
+  cv_url: string | null;
+  notes: string | null;
+  feedback: string | null;
+  offer_salary: number | null;
+  offer_start_date: string | null;
+  offer_status: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface OnboardingTask {
+  id: string;
+  worker_id: string;
+  title: string;
+  category: string | null;
+  status: string;
+  due_date: string | null;
+  assignee: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Organisation {
   id: string;
   legal_name: string;
