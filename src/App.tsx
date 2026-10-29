@@ -11,6 +11,13 @@ import { Recruitment } from '@/pages/hr/Recruitment';
 import { Onboarding } from '@/pages/hr/Onboarding';
 import { Documents as HrDocuments } from '@/pages/hr/Documents';
 import { ComplianceDashboard } from '@/pages/compliance/ComplianceDashboard';
+import { RightToWork } from '@/pages/compliance/RightToWork';
+import { Employment } from '@/pages/compliance/Employment';
+import { AbsenceMonitoring } from '@/pages/compliance/AbsenceMonitoring';
+import { ComplianceDocuments } from '@/pages/compliance/ComplianceDocuments';
+import { ChangeReporting } from '@/pages/compliance/ChangeReporting';
+import { AuditTrail } from '@/pages/compliance/AuditTrail';
+import { Reports } from '@/pages/compliance/Reports';
 import { WorkersRegister } from '@/pages/WorkersRegister';
 import { WorkerForm } from '@/pages/WorkerForm';
 import { WorkerProfile } from '@/pages/WorkerProfile';
@@ -56,13 +63,13 @@ export function App() {
       <Route path="/compliance/workers/new" element={<Shell app="compliance"><WorkerForm app="compliance" /></Shell>} />
       <Route path="/compliance/workers/:id" element={<Shell app="compliance"><WorkerProfile app="compliance" /></Shell>} />
       <Route path="/compliance/workers/:id/edit" element={<Shell app="compliance"><WorkerForm app="compliance" /></Shell>} />
-      <Route path="/compliance/right-to-work" element={<Shell app="compliance">{ph('Right to Work & eVisa', 'Share code checks, statutory excuse and follow-up scheduling.', 'the next build step')}</Shell>} />
-      <Route path="/compliance/employment" element={<Shell app="compliance">{ph('Employment & CoS', 'SOC and salary alignment against going rates, and role-eligibility reviews.', 'an upcoming step')}</Shell>} />
-      <Route path="/compliance/absence" element={<Shell app="compliance">{ph('Absence Monitoring', 'Absence and attendance, with the UKVI 10 working day trigger.', 'an upcoming step')}</Shell>} />
-      <Route path="/compliance/documents" element={<Shell app="compliance">{ph('Documents & Retention', 'Appendix D checklist, uploads, acknowledgements and retention clocks.', 'an upcoming step')}</Shell>} />
-      <Route path="/compliance/reporting" element={<Shell app="compliance">{ph('Change Reporting', 'Reportable events, working-day deadlines, and the SMS Copilot.', 'Phase 2')}</Shell>} />
-      <Route path="/compliance/audit" element={<Shell app="compliance">{ph('Audit Trail', 'Complete, append-only activity log and the one-click audit pack.', 'an upcoming step')}</Shell>} />
-      <Route path="/compliance/reports" element={<Shell app="compliance">{ph('Reports', 'Fixed compliance reports and the inspection audit pack.', 'an upcoming step')}</Shell>} />
+      <Route path="/compliance/right-to-work" element={<Shell app="compliance"><RightToWork /></Shell>} />
+      <Route path="/compliance/employment" element={<Shell app="compliance"><Employment /></Shell>} />
+      <Route path="/compliance/absence" element={<Shell app="compliance"><AbsenceMonitoring /></Shell>} />
+      <Route path="/compliance/documents" element={<Shell app="compliance"><ComplianceDocuments /></Shell>} />
+      <Route path="/compliance/reporting" element={<Shell app="compliance"><ChangeReporting /></Shell>} />
+      <Route path="/compliance/audit" element={<Shell app="compliance"><AuditTrail /></Shell>} />
+      <Route path="/compliance/reports" element={<Shell app="compliance"><Reports /></Shell>} />
       <Route path="/compliance/settings" element={<Shell app="compliance">{ph('Settings', 'Organisation and licence, key personnel, going rates and alert thresholds.', 'an upcoming step')}</Shell>} />
 
       <Route path="*" element={<Navigate to="/" replace />} />

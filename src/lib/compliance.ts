@@ -83,6 +83,19 @@ export function workingDaysBetween(start: string, end: string, holidays: Set<str
   return count;
 }
 
+// Add n working days to a date (skipping weekends and bank holidays).
+export function addWorkingDays(from: string, n: number, holidays: Set<string>): string {
+  const d = new Date(from);
+  let added = 0;
+  while (added < n) {
+    d.setDate(d.getDate() + 1);
+    const day = d.getDay();
+    const iso = d.toISOString().slice(0, 10);
+    if (day !== 0 && day !== 6 && !holidays.has(iso)) added++;
+  }
+  return d.toISOString().slice(0, 10);
+}
+
 // Do two inclusive date ranges overlap?
 export function rangesOverlap(aStart: string, aEnd: string, bStart: string, bEnd: string): boolean {
   return aStart <= bEnd && bStart <= aEnd;
