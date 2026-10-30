@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Plus } from 'lucide-react';
+import { Search, Plus, FileDown } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { PageHeader, StatusPill, Button, Code, EmptyState, Card, Avatar } from '@/components/ui';
 import { workerStatus, fullName, formatDate } from '@/lib/compliance';
+import { downloadCSV } from '@/lib/export';
 import type { Worker, RightToWorkCheck, Department } from '@/types/database';
 
 type AppVariant = 'compliance' | 'hr';
@@ -54,12 +55,28 @@ export function WorkersRegister({ app }: { app: AppVariant }) {
   const subtitle = app === 'hr' ? 'Everyone on the team, with role and status.' : 'Every worker on the register, with live compliance status.';
   const addLabel = app === 'hr' ? 'Add employee' : 'Add worker';
 
+  function exportCsv() {
+    const today = new Date().toISOString().slice(0, 10);
+    if (app === 'hr') {
+      downloadCSV(`employees-${today}.csv`,
+        ['Name', 'Employee number', 'Job title', 'Department', 'Manager', 'Contract', 'Status', 'Start date', 'Salary', 'Email', 'Phone'],
+        filtered.map((w) => [fullName(w), w.employee_number, w.job_title, w.department_id ? depts[w.department_id] ?? '' : '', nameOf(w.manager_id), w.contract_type?.replace(/_/g, ' '), w.employment_status, w.start_date, w.annual_salary, w.personal_email, w.personal_phone]));
+    } else {
+      downloadCSV(`engaged-workers-${today}.csv`,
+        ['Name', 'Job title', 'SOC code', 'Sponsorship', 'Visa type', 'Visa expiry', 'CoS reference', 'Status', 'Nationality', 'Start date', 'Salary'],
+        filtered.map((w) => { const s = workerStatus(w, rtwByWorker[w.id]); return [fullName(w), w.job_title, w.soc_code, w.sponsorship_type.replace(/_/g, ' '), w.visa_type, w.visa_expiry, w.cos_reference, s.headline, w.nationality, w.start_date, w.annual_salary]; }));
+    }
+  }
+
   return (
     <div>
       <PageHeader
         title={title}
         subtitle={subtitle}
-        actions={<Button onClick={() => navigate(`${base}/new`)}><span className="inline-flex items-center gap-1.5"><Plus size={16} /> {addLabel}</span></Button>}
+        actions={<div className="flex items-center gap-2">
+          <Button variant="secondary" onClick={exportCsv} disabled={filtered.length === 0}><span className="inline-flex items-center gap-1.5"><FileDown size={16} /> Export CSV</span></Button>
+          <Button onClick={() => navigate(`${base}/new`)}><span className="inline-flex items-center gap-1.5"><Plus size={16} /> {addLabel}</span></Button>
+        </div>}
       />
 
       <div className="relative mb-4 max-w-sm">

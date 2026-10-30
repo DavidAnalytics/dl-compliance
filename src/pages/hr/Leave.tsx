@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Plus, Check, X, ChevronLeft, ChevronRight, AlertTriangle } from 'lucide-react';
+import { Plus, Check, X, ChevronLeft, ChevronRight, AlertTriangle, FileDown } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { PageHeader, Card, Button, Avatar, EmptyState } from '@/components/ui';
 import { fullName, formatDate, workingDaysBetween, rangesOverlap } from '@/lib/compliance';
+import { downloadCSV } from '@/lib/export';
 import type { Worker, LeaveType, LeaveRequest, LeaveEntitlement, BankHoliday } from '@/types/database';
 
 type View = 'requests' | 'calendar' | 'entitlements';
@@ -94,12 +95,21 @@ export function Leave() {
   const pending = requests.filter((r) => r.status === 'pending');
   const decided = requests.filter((r) => r.status !== 'pending');
 
+  function exportCsv() {
+    downloadCSV(`leave-requests-${new Date().toISOString().slice(0, 10)}.csv`,
+      ['Employee', 'Type', 'From', 'To', 'Working days', 'Status', 'Reason', 'Decided at'],
+      requests.map((r) => [nameOf(r.worker_id), typeOf(r.leave_type_id)?.name ?? '', r.start_date, r.end_date, r.working_days, r.status, r.reason, r.decided_at ? new Date(r.decided_at).toLocaleString('en-GB') : '']));
+  }
+
   if (loading) return <p className="text-sm text-ink-muted">Loading…</p>;
 
   return (
     <div>
       <PageHeader title="Leave & Holiday" subtitle="Requests, approvals, entitlements and the team calendar."
-        actions={<Button onClick={() => setBooking(true)}><span className="inline-flex items-center gap-1.5"><Plus size={16} /> Book leave</span></Button>} />
+        actions={<div className="flex items-center gap-2">
+          <Button variant="secondary" onClick={exportCsv} disabled={requests.length === 0}><span className="inline-flex items-center gap-1.5"><FileDown size={16} /> Export CSV</span></Button>
+          <Button onClick={() => setBooking(true)}><span className="inline-flex items-center gap-1.5"><Plus size={16} /> Book leave</span></Button>
+        </div>} />
 
       <div className="mb-5 flex gap-1 border-b border-line">
         {(['requests', 'calendar', 'entitlements'] as View[]).map((v) => (

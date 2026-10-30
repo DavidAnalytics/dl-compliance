@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Plus, Trash2 } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, FileDown } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { StatusPill, Button, Code, Card, Avatar } from '@/components/ui';
 import { workerStatus, fullName, formatDate, formatMoney, daysUntil } from '@/lib/compliance';
+import { printHTML, field, table } from '@/lib/export';
 import type {
   Worker, RightToWorkCheck, Absence, RequiredDocument, SocGoingRate, RagRating,
   Department, EmergencyContact, EmployeeEvent,
@@ -127,6 +128,43 @@ export function WorkerProfile({ app }: { app: AppVariant }) {
     load();
   }
 
+  function exportDossier() {
+    if (!worker) return;
+    const w = worker;
+    const inner = `
+      <h1>${fullName(w)}</h1>
+      <p class="meta">${w.job_title ?? 'Role not set'}${dept ? ` · ${dept.name}` : ''} · ${w.employment_status} · generated ${new Date().toLocaleString('en-GB')}</p>
+      <h2>Employment</h2>
+      <div class="grid">
+        ${field('Employee number', w.employee_number)}${field('Job title', w.job_title)}${field('Department', dept?.name)}
+        ${field('Manager', manager ? fullName(manager) : null)}${field('Contract', w.contract_type?.replace(/_/g, ' '))}${field('SOC code', w.soc_code)}
+        ${field('Salary', w.annual_salary != null ? formatMoney(w.annual_salary) : null)}${field('Going rate', rate?.going_rate_annual ? formatMoney(rate.going_rate_annual) : null)}
+        ${field('Start date', formatDate(w.start_date))}${field('Work location', w.work_location)}
+      </div>
+      <h2>Immigration &amp; sponsorship</h2>
+      <div class="grid">
+        ${field('Nationality', w.nationality)}${field('Sponsorship', w.sponsorship_type.replace(/_/g, ' '))}${field('Visa type', w.visa_type)}
+        ${field('Visa expiry', formatDate(w.visa_expiry))}${field('CoS reference', w.cos_reference)}
+        ${field('Statutory excuse', latestRtw ? latestRtw.excuse_type.replace(/_/g, ' ') : null)}${field('Follow-up due', formatDate(latestRtw?.excuse_expiry ?? latestRtw?.follow_up_due ?? null))}
+      </div>
+      <h2>Contact</h2>
+      <div class="grid">${field('Email', w.personal_email)}${field('Phone', w.personal_phone)}${field('Home address', w.home_address)}</div>
+      <h2>Emergency contacts</h2>
+      ${table(['Name', 'Relationship', 'Phone', 'Email'], contacts.map((c) => [c.name, c.relationship, c.phone, c.email]), 'None recorded')}
+      <h2>Right to work checks</h2>
+      ${table(['Checked', 'Method', 'Share code', 'Excuse', 'Follow-up', 'Outcome'], rtw.map((c) => [formatDate(c.checked_on), c.method.replace(/_/g, ' '), c.share_code, c.excuse_type.replace(/_/g, ' '), formatDate(c.excuse_expiry ?? c.follow_up_due), c.outcome.replace(/_/g, ' ')]), 'None recorded')}
+      <h2>DBS checks</h2>
+      ${table(['Level', 'Issued', 'Renewal due'], dbs.map((d) => [d.level, formatDate(d.issue_date), formatDate(d.renewal_due)]), w.requires_dbs ? 'None recorded' : 'Not required for this role')}
+      <h2>Absences</h2>
+      ${table(['From', 'To', 'Type', 'Working days', 'Reportable'], absences.map((a) => [formatDate(a.start_date), formatDate(a.end_date), a.absence_type, a.working_days, a.reportable ? 'Yes' : 'No']), 'None recorded')}
+      <h2>Documents on file</h2>
+      ${table(['Document', 'Category', 'Added'], docs.map((d) => [d.title, d.category, formatDate(d.created_at)]), 'None on file')}
+      <h2>History</h2>
+      ${table(['Date', 'Event', 'Detail'], events.map((e) => [formatDate(e.effective_date), e.event_type.replace(/_/g, ' '), e.detail]), 'None recorded')}
+    `;
+    printHTML(`${fullName(w)} — worker record`, inner);
+  }
+
   if (loading) return <p className="text-sm text-ink-muted">Loading…</p>;
   if (!worker) return <p className="text-sm text-ink-muted">Not found.</p>;
 
@@ -165,6 +203,7 @@ export function WorkerProfile({ app }: { app: AppVariant }) {
           </div>
           <div className="flex items-center gap-2">
             {app === 'compliance' && <StatusPill rating={status.rating} label={status.headline} />}
+            <Button variant="secondary" size="sm" onClick={exportDossier}><span className="inline-flex items-center gap-1.5"><FileDown size={15} /> Export</span></Button>
             <Button variant="secondary" size="sm" onClick={() => navigate(`${base}/${id}/edit`)}>Edit</Button>
           </div>
         </div>
