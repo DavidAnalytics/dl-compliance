@@ -97,12 +97,17 @@ export function Recruitment() {
 
 function VacancyDetail({ vacancy, departments, hiringManager, onBack }: { vacancy: Vacancy; departments: Department[]; hiringManager: string | null; onBack: () => void }) {
   const [candidates, setCandidates] = useState<Candidate[]>([]);
+  const [status, setStatus] = useState(vacancy.status);
   const [adding, setAdding] = useState(false);
   const [loading, setLoading] = useState(true);
 
   async function load() {
-    const { data } = await supabase.from('candidates').select('*').eq('vacancy_id', vacancy.id).order('created_at');
+    const [{ data }, { data: v }] = await Promise.all([
+      supabase.from('candidates').select('*').eq('vacancy_id', vacancy.id).order('created_at'),
+      supabase.from('vacancies').select('status').eq('id', vacancy.id).maybeSingle(),
+    ]);
     setCandidates((data as Candidate[]) ?? []);
+    if (v) setStatus((v as { status: string }).status);
     setLoading(false);
   }
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [vacancy.id]);
@@ -121,7 +126,7 @@ function VacancyDetail({ vacancy, departments, hiringManager, onBack }: { vacanc
   return (
     <div>
       <button onClick={onBack} className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-ink-muted hover:text-ink"><ArrowLeft size={16} /> Vacancies</button>
-      <PageHeader title={vacancy.title} subtitle={`${deptName} · ${vacancy.openings} opening${vacancy.openings === 1 ? '' : 's'} · ${vacancy.status}${hiringManager ? ` · Hiring manager: ${hiringManager}` : ''}`}
+      <PageHeader title={vacancy.title} subtitle={`${deptName} · ${vacancy.openings} opening${vacancy.openings === 1 ? '' : 's'} · ${status}${hiringManager ? ` · Hiring manager: ${hiringManager}` : ''}`}
         actions={<Button onClick={() => setAdding(true)}><span className="inline-flex items-center gap-1.5"><Plus size={16} /> Add candidate</span></Button>} />
 
       {loading ? <p className="text-sm text-ink-muted">Loading…</p> : (
