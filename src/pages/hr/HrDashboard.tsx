@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Users, CalendarOff, Plane, Plus, CalendarPlus, ArrowRight } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { Card, SectionLabel, Avatar } from '@/components/ui';
+import { NewsFeed } from '@/components/NewsFeed';
 import { fullName, formatDate } from '@/lib/compliance';
 import type { Worker, Absence } from '@/types/database';
 
@@ -138,6 +139,8 @@ export function HrDashboard() {
           )}
         </Card>
       </div>
+
+      <NewsFeed />
 
       {/* Recent activity */}
       <Card className="p-6">

@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { fetchMyWorker } from '@/lib/me';
 import { Card, SectionLabel } from '@/components/ui';
+import { NewsFeed } from '@/components/NewsFeed';
 import { fullName, formatDate } from '@/lib/compliance';
 import type { Worker, LeaveRequest, LeaveEntitlement } from '@/types/database';
 
@@ -79,6 +80,8 @@ export function MyOverview() {
           </ul>
         )}
       </Card>
+
+      <NewsFeed />
     </div>
   );
 }

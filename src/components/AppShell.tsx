@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { Bell, Mail, Search, LogOut, ChevronDown, Menu } from 'lucide-react';
+import { Bell, Mail, LogOut, ChevronDown, Menu, KeyRound } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
-import { Avatar } from '@/components/ui';
+import { Avatar, Button } from '@/components/ui';
+import { GlobalSearch } from '@/components/GlobalSearch';
 
 interface AlertRow { id: string; severity: string; title: string; detail: string | null; due_date: string | null; }
 import {
@@ -38,6 +39,7 @@ export function AppShell({ app, children }: { app: AppKey; children: React.React
   const [menuOpen, setMenuOpen] = useState(false);
   const [bellOpen, setBellOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [pwOpen, setPwOpen] = useState(false);
   const [alerts, setAlerts] = useState<AlertRow[]>([]);
   const closeSidebar = () => setSidebarOpen(false);
 
@@ -126,14 +128,8 @@ export function AppShell({ app, children }: { app: AppKey; children: React.React
             </div>
           )}
 
-          {/* Search */}
-          <div className="relative hidden flex-1 md:block">
-            <Search size={18} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-faint" />
-            <input
-              placeholder={`Search ${meta.name}…`}
-              className="w-full max-w-md rounded-xl border border-line bg-white py-2.5 pl-10 pr-4 text-sm placeholder:text-ink-faint focus:border-brand-300 focus:outline-none"
-            />
-          </div>
+          {/* Search (staff only) */}
+          {staff && !employee && <GlobalSearch app={app} />}
 
           <div className="ml-auto flex items-center gap-2">
             {staff && (
@@ -180,12 +176,15 @@ export function AppShell({ app, children }: { app: AppKey; children: React.React
                 <ChevronDown size={14} className="text-ink-faint" />
               </button>
               {menuOpen && (
-                <div className="absolute right-0 mt-2 w-44 rounded-xl border border-line bg-white p-1 shadow-pop">
+                <div className="absolute right-0 mt-2 w-48 rounded-xl border border-line bg-white p-1 shadow-pop">
                   {staff && !employee && (
-                    <button onClick={() => navigate(APP_META[other].home)} className="block w-full rounded-lg px-3 py-2 text-left text-sm text-ink hover:bg-canvas">
+                    <button onClick={() => { setMenuOpen(false); navigate(APP_META[other].home); }} className="block w-full rounded-lg px-3 py-2 text-left text-sm text-ink hover:bg-canvas">
                       Switch to {APP_META[other].name}
                     </button>
                   )}
+                  <button onClick={() => { setMenuOpen(false); setPwOpen(true); }} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-ink hover:bg-canvas">
+                    <KeyRound size={15} className="text-ink-faint" /> Change password
+                  </button>
                   <button onClick={handleSignOut} className="block w-full rounded-lg px-3 py-2 text-left text-sm text-ink hover:bg-canvas">
                     Log out
                   </button>
@@ -198,6 +197,53 @@ export function AppShell({ app, children }: { app: AppKey; children: React.React
         <main className="thin-scroll flex-1 overflow-auto px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
           <div className="mx-auto max-w-6xl">{children}</div>
         </main>
+      </div>
+
+      {pwOpen && <ChangePasswordModal onClose={() => setPwOpen(false)} />}
+    </div>
+  );
+}
+
+function ChangePasswordModal({ onClose }: { onClose: () => void }) {
+  const { updatePassword } = useAuth();
+  const [password, setPassword] = useState('');
+  const [confirm, setConfirm] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [done, setDone] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const inputCls = 'w-full rounded-xl border border-line bg-white px-3.5 py-2.5 text-sm focus:border-brand-300 focus:outline-none';
+
+  async function save() {
+    setError(null);
+    if (password.length < 8) { setError('Use at least 8 characters.'); return; }
+    if (password !== confirm) { setError('The two passwords do not match.'); return; }
+    setBusy(true);
+    const { error } = await updatePassword(password);
+    setBusy(false);
+    if (error) { setError(error); return; }
+    setDone(true);
+    setTimeout(onClose, 1400);
+  }
+
+  return (
+    <div className="fixed inset-0 z-40 flex items-center justify-center bg-ink/40 p-4" onClick={onClose}>
+      <div className="w-full max-w-sm rounded-2xl bg-surface p-6 shadow-pop" onClick={(e) => e.stopPropagation()}>
+        <h2 className="mb-4 text-lg font-bold text-ink">Change password</h2>
+        {done ? (
+          <p className="rounded-xl border border-rag-green/30 bg-rag-greenbg p-3.5 text-sm text-ink">Password updated.</p>
+        ) : (
+          <>
+            <div className="space-y-3">
+              <div><label className="mb-1.5 block text-xs font-semibold text-ink-muted">New password</label><input type="password" autoComplete="new-password" className={inputCls} value={password} onChange={(e) => setPassword(e.target.value)} /></div>
+              <div><label className="mb-1.5 block text-xs font-semibold text-ink-muted">Confirm new password</label><input type="password" autoComplete="new-password" className={inputCls} value={confirm} onChange={(e) => setConfirm(e.target.value)} /></div>
+              {error && <p className="text-sm text-rag-red">{error}</p>}
+            </div>
+            <div className="mt-5 flex justify-end gap-2">
+              <Button variant="secondary" onClick={onClose}>Cancel</Button>
+              <Button onClick={save} disabled={busy}>{busy ? 'Saving…' : 'Update password'}</Button>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

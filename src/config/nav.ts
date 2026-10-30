@@ -1,7 +1,7 @@
 import {
   LayoutDashboard, Users, CalendarDays, CalendarOff, ShieldCheck, FileText,
   BadgeCheck, ClipboardList, Briefcase, ScrollText, History, PieChart,
-  LifeBuoy, Settings, UserSearch, ClipboardCheck, FolderOpen, type LucideIcon,
+  Settings, UserSearch, ClipboardCheck, FolderOpen, Megaphone, type LucideIcon,
 } from 'lucide-react';
 
 export interface NavItem {
@@ -20,10 +20,10 @@ export const hrNav: NavItem[] = [
   { to: '/hr/onboarding', label: 'Onboarding', icon: ClipboardCheck },
   { to: '/hr/documents', label: 'Documents', icon: FolderOpen },
   { to: '/hr/policies', label: 'Policies', icon: ScrollText },
+  { to: '/hr/news', label: 'News & Events', icon: Megaphone },
 ];
 
 export const hrFooterNav: NavItem[] = [
-  { to: '/hr/support', label: 'Support', icon: LifeBuoy },
   { to: '/hr/settings', label: 'Settings', icon: Settings },
 ];
 

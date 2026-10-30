@@ -13,6 +13,8 @@ import { Absence } from '@/pages/hr/Absence';
 import { Recruitment } from '@/pages/hr/Recruitment';
 import { Onboarding } from '@/pages/hr/Onboarding';
 import { Documents as HrDocuments } from '@/pages/hr/Documents';
+import { HrSettings } from '@/pages/hr/HrSettings';
+import { News } from '@/pages/hr/News';
 import { ComplianceDashboard } from '@/pages/compliance/ComplianceDashboard';
 import { RightToWork } from '@/pages/compliance/RightToWork';
 import { Employment } from '@/pages/compliance/Employment';
@@ -21,11 +23,11 @@ import { ComplianceDocuments } from '@/pages/compliance/ComplianceDocuments';
 import { ChangeReporting } from '@/pages/compliance/ChangeReporting';
 import { AuditTrail } from '@/pages/compliance/AuditTrail';
 import { Reports } from '@/pages/compliance/Reports';
+import { ComplianceSettings } from '@/pages/compliance/ComplianceSettings';
 import { WorkersRegister } from '@/pages/WorkersRegister';
 import { WorkerForm } from '@/pages/WorkerForm';
 import { WorkerProfile } from '@/pages/WorkerProfile';
 import { Policies } from '@/pages/Policies';
-import { ModulePlaceholder } from '@/pages/ModulePlaceholder';
 import { MyOverview } from '@/pages/me/MyOverview';
 import { MyDetails } from '@/pages/me/MyDetails';
 import { MyLeave } from '@/pages/me/MyLeave';
@@ -64,8 +66,6 @@ function RoleHome() {
   return <Home />;
 }
 
-const ph = (title: string, description: string, phase: string) => <ModulePlaceholder title={title} description={description} phase={phase} />;
-
 export function App() {
   return (
     <Routes>
@@ -92,8 +92,8 @@ export function App() {
       <Route path="/hr/onboarding" element={<StaffShell app="hr"><Onboarding /></StaffShell>} />
       <Route path="/hr/documents" element={<StaffShell app="hr"><HrDocuments /></StaffShell>} />
       <Route path="/hr/policies" element={<StaffShell app="hr"><Policies /></StaffShell>} />
-      <Route path="/hr/support" element={<StaffShell app="hr">{ph('Support', 'Raise and track support requests.', 'a later step')}</StaffShell>} />
-      <Route path="/hr/settings" element={<StaffShell app="hr">{ph('Settings', 'Leave entitlements, departments, team and preferences.', 'a later step')}</StaffShell>} />
+      <Route path="/hr/news" element={<StaffShell app="hr"><News /></StaffShell>} />
+      <Route path="/hr/settings" element={<StaffShell app="hr"><HrSettings /></StaffShell>} />
 
       {/* Compliance app (staff only) */}
       <Route path="/compliance" element={<StaffShell app="compliance"><ComplianceDashboard /></StaffShell>} />
@@ -108,7 +108,7 @@ export function App() {
       <Route path="/compliance/reporting" element={<StaffShell app="compliance"><ChangeReporting /></StaffShell>} />
       <Route path="/compliance/audit" element={<StaffShell app="compliance"><AuditTrail /></StaffShell>} />
       <Route path="/compliance/reports" element={<StaffShell app="compliance"><Reports /></StaffShell>} />
-      <Route path="/compliance/settings" element={<StaffShell app="compliance">{ph('Settings', 'Organisation and licence, key personnel, going rates and alert thresholds.', 'an upcoming step')}</StaffShell>} />
+      <Route path="/compliance/settings" element={<StaffShell app="compliance"><ComplianceSettings /></StaffShell>} />
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
