@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { isWorker } from '@/lib/roles';
 import type { AppKey } from '@/config/nav';
 import { Login } from '@/pages/Login';
+import { ResetPassword } from '@/pages/ResetPassword';
 import { Home } from '@/pages/Home';
 import { HrDashboard } from '@/pages/hr/HrDashboard';
 import { Leave } from '@/pages/hr/Leave';
@@ -69,6 +70,7 @@ export function App() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/" element={<ProtectedRoute><RoleHome /></ProtectedRoute>} />
 
       {/* Employee portal */}
