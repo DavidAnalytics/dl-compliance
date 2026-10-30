@@ -2,32 +2,35 @@ import { useEffect, useMemo, useState } from 'react';
 import { Plus, ArrowLeft, Users } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { PageHeader, Card, Button, EmptyState, Avatar } from '@/components/ui';
-import { fullName } from '@/lib/compliance';
-import type { Vacancy, Candidate, Department, Worker } from '@/types/database';
+import { STAFF_ROLES } from '@/lib/roles';
+import type { Vacancy, Candidate as DbCandidate, Department, AppUser } from '@/types/database';
 
+type Candidate = DbCandidate & { cv_path?: string | null };
 const STAGES = ['applied', 'screening', 'interview', 'offer', 'hired'] as const;
 const field = 'w-full rounded-xl border border-line bg-white px-3.5 py-2.5 text-sm focus:border-brand-300 focus:outline-none';
 const ORG_ID = '00000000-0000-0000-0000-0000000000d1';
 
+const managerName = (m: AppUser) => m.full_name || m.email || 'User';
+
 export function Recruitment() {
   const [vacancies, setVacancies] = useState<Vacancy[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
-  const [workers, setWorkers] = useState<Worker[]>([]);
+  const [managers, setManagers] = useState<AppUser[]>([]);
   const [counts, setCounts] = useState<Record<string, number>>({});
   const [selected, setSelected] = useState<Vacancy | null>(null);
   const [newVac, setNewVac] = useState(false);
   const [loading, setLoading] = useState(true);
 
   async function load() {
-    const [v, d, w, c] = await Promise.all([
+    const [v, d, m, c] = await Promise.all([
       supabase.from('vacancies').select('*').order('created_at', { ascending: false }),
       supabase.from('departments').select('*'),
-      supabase.from('workers').select('*').neq('employment_status', 'left'),
+      supabase.from('app_users').select('id,full_name,email,role').in('role', STAFF_ROLES as unknown as string[]),
       supabase.from('candidates').select('vacancy_id'),
     ]);
     setVacancies((v.data as Vacancy[]) ?? []);
     setDepartments((d.data as Department[]) ?? []);
-    setWorkers((w.data as Worker[]) ?? []);
+    setManagers((m.data as AppUser[]) ?? []);
     const cc: Record<string, number> = {};
     for (const row of (c.data as { vacancy_id: string }[]) ?? []) cc[row.vacancy_id] = (cc[row.vacancy_id] ?? 0) + 1;
     setCounts(cc);
@@ -36,9 +39,10 @@ export function Recruitment() {
   useEffect(() => { load(); }, []);
 
   const deptName = (id: string | null) => departments.find((x) => x.id === id)?.name ?? '—';
+  const mgrName = (id: string | null) => { const m = managers.find((x) => x.id === id); return m ? managerName(m) : null; };
 
   if (loading) return <p className="text-sm text-ink-muted">Loading…</p>;
-  if (selected) return <VacancyDetail vacancy={selected} departments={departments} onBack={() => { setSelected(null); load(); }} />;
+  if (selected) return <VacancyDetail vacancy={selected} departments={departments} hiringManager={mgrName(selected.hiring_manager_id)} onBack={() => { setSelected(null); load(); }} />;
 
   return (
     <div>
@@ -62,11 +66,11 @@ export function Recruitment() {
         </div>
       )}
 
-      {newVac && <NewVacancy departments={departments} workers={workers} onClose={() => setNewVac(false)} onSaved={() => { setNewVac(false); load(); }} />}
+      {newVac && <NewVacancy departments={departments} managers={managers} onClose={() => setNewVac(false)} onSaved={() => { setNewVac(false); load(); }} />}
     </div>
   );
 
-  function NewVacancy({ departments, workers, onClose, onSaved }: { departments: Department[]; workers: Worker[]; onClose: () => void; onSaved: () => void }) {
+  function NewVacancy({ departments, managers, onClose, onSaved }: { departments: Department[]; managers: AppUser[]; onClose: () => void; onSaved: () => void }) {
     const [f, setF] = useState<{ title: string; department_id: string; hiring_manager_id: string; openings: number; description: string }>({ title: '', department_id: '', hiring_manager_id: '', openings: 1, description: '' });
     const [saving, setSaving] = useState(false);
     async function save() {
@@ -84,14 +88,14 @@ export function Recruitment() {
           <div><label className="mb-1 block text-xs font-semibold text-ink-muted">Openings</label><input type="number" className={field} value={f.openings} onChange={(e) => setF({ ...f, openings: Number(e.target.value) })} /></div>
         </div>
         <div><label className="mb-1 block text-xs font-semibold text-ink-muted">Hiring manager</label>
-          <select className={field} value={f.hiring_manager_id} onChange={(e) => setF({ ...f, hiring_manager_id: e.target.value })}><option value="">Not set</option>{workers.map((w) => <option key={w.id} value={w.id}>{fullName(w)}</option>)}</select></div>
+          <select className={field} value={f.hiring_manager_id} onChange={(e) => setF({ ...f, hiring_manager_id: e.target.value })}><option value="">Not set</option>{managers.map((m) => <option key={m.id} value={m.id}>{managerName(m)}</option>)}</select></div>
         <div><label className="mb-1 block text-xs font-semibold text-ink-muted">Description</label><textarea className={field} rows={3} value={f.description} onChange={(e) => setF({ ...f, description: e.target.value })} /></div>
       </Modal>
     );
   }
 }
 
-function VacancyDetail({ vacancy, departments, onBack }: { vacancy: Vacancy; departments: Department[]; onBack: () => void }) {
+function VacancyDetail({ vacancy, departments, hiringManager, onBack }: { vacancy: Vacancy; departments: Department[]; hiringManager: string | null; onBack: () => void }) {
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [adding, setAdding] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -117,7 +121,7 @@ function VacancyDetail({ vacancy, departments, onBack }: { vacancy: Vacancy; dep
   return (
     <div>
       <button onClick={onBack} className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-ink-muted hover:text-ink"><ArrowLeft size={16} /> Vacancies</button>
-      <PageHeader title={vacancy.title} subtitle={`${deptName} · ${vacancy.openings} opening${vacancy.openings === 1 ? '' : 's'} · ${vacancy.status}`}
+      <PageHeader title={vacancy.title} subtitle={`${deptName} · ${vacancy.openings} opening${vacancy.openings === 1 ? '' : 's'} · ${vacancy.status}${hiringManager ? ` · Hiring manager: ${hiringManager}` : ''}`}
         actions={<Button onClick={() => setAdding(true)}><span className="inline-flex items-center gap-1.5"><Plus size={16} /> Add candidate</span></Button>} />
 
       {loading ? <p className="text-sm text-ink-muted">Loading…</p> : (
@@ -169,7 +173,11 @@ function CandidateCard({ c, onMove, onSave }: { c: Candidate; onMove: (c: Candid
       </div>
       {open && (
         <div className="mt-2 space-y-2 border-t border-line pt-2">
-          {c.cv_url && <a href={c.cv_url} target="_blank" rel="noreferrer" className="block text-2xs font-semibold text-brand-600 hover:underline">View CV</a>}
+          {c.cv_path ? (
+            <button onClick={async () => { const { data } = await supabase.storage.from('documents').createSignedUrl(c.cv_path!, 60); if (data?.signedUrl) window.open(data.signedUrl, '_blank'); }} className="block text-2xs font-semibold text-brand-600 hover:underline">View CV</button>
+          ) : c.cv_url ? (
+            <a href={c.cv_url} target="_blank" rel="noreferrer" className="block text-2xs font-semibold text-brand-600 hover:underline">View CV</a>
+          ) : null}
           <textarea placeholder="Interview notes" value={notes} onChange={(e) => setNotes(e.target.value)} onBlur={() => onSave(c.id, { notes })} className="w-full rounded-md border border-line px-2 py-1 text-2xs" rows={2} />
           <textarea placeholder="Feedback" value={feedback} onChange={(e) => setFeedback(e.target.value)} onBlur={() => onSave(c.id, { feedback })} className="w-full rounded-md border border-line px-2 py-1 text-2xs" rows={2} />
           {c.stage === 'offer' && (
@@ -187,13 +195,24 @@ function CandidateCard({ c, onMove, onSave }: { c: Candidate; onMove: (c: Candid
 }
 
 function AddCandidate({ vacancyId, onClose, onSaved }: { vacancyId: string; onClose: () => void; onSaved: () => void }) {
-  const [f, setF] = useState({ name: '', email: '', phone: '', cv_url: '' });
+  const [f, setF] = useState({ name: '', email: '', phone: '' });
+  const [cv, setCv] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   async function save() {
     if (!f.name.trim()) return;
-    setSaving(true);
-    await supabase.from('candidates').insert({ vacancy_id: vacancyId, name: f.name, email: f.email || null, phone: f.phone || null, cv_url: f.cv_url || null, stage: 'applied' });
-    setSaving(false); onSaved();
+    setError(null); setSaving(true);
+    let cv_path: string | null = null;
+    if (cv) {
+      const path = `${ORG_ID}/cv/${crypto.randomUUID()}-${cv.name}`;
+      const up = await supabase.storage.from('documents').upload(path, cv);
+      if (up.error) { setError(up.error.message); setSaving(false); return; }
+      cv_path = path;
+    }
+    const ins = await supabase.from('candidates').insert({ vacancy_id: vacancyId, name: f.name, email: f.email || null, phone: f.phone || null, cv_path, stage: 'applied' });
+    setSaving(false);
+    if (ins.error) { setError(ins.error.message); return; }
+    onSaved();
   }
   return (
     <Modal title="Add candidate" onClose={onClose} onSave={save} saving={saving}>
@@ -202,7 +221,12 @@ function AddCandidate({ vacancyId, onClose, onSaved }: { vacancyId: string; onCl
         <div><label className="mb-1 block text-xs font-semibold text-ink-muted">Email</label><input className={field} value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} /></div>
         <div><label className="mb-1 block text-xs font-semibold text-ink-muted">Phone</label><input className={field} value={f.phone} onChange={(e) => setF({ ...f, phone: e.target.value })} /></div>
       </div>
-      <div><label className="mb-1 block text-xs font-semibold text-ink-muted">CV link</label><input className={field} placeholder="https://…" value={f.cv_url} onChange={(e) => setF({ ...f, cv_url: e.target.value })} /></div>
+      <div><label className="mb-1 block text-xs font-semibold text-ink-muted">CV</label>
+        <input type="file" accept=".pdf,.doc,.docx" onChange={(e) => setCv(e.target.files?.[0] ?? null)}
+          className="block w-full text-sm text-ink-muted file:mr-3 file:rounded-lg file:border-0 file:bg-brand-50 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-brand-600" />
+        <p className="mt-1 text-2xs text-ink-faint">PDF or Word. Stored securely with the candidate.</p>
+      </div>
+      {error && <p className="text-sm text-rag-red">{error}</p>}
     </Modal>
   );
 }
