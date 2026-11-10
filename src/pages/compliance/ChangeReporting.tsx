@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Plus } from 'lucide-react';
+import { Wand2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { PageHeader, Card, Button, EmptyState, StatusPill } from '@/components/ui';
 import { fullName, formatDate, daysUntil, addWorkingDays } from '@/lib/compliance';
+import { ReportingWizard } from '@/pages/compliance/ReportingWizard';
 import type { Worker, BankHoliday, RagRating } from '@/types/database';
 
 const field = 'w-full rounded-xl border border-line bg-white px-3.5 py-2.5 text-sm focus:border-brand-300 focus:outline-none';
@@ -25,6 +26,7 @@ export function ChangeReporting() {
   const [workers, setWorkers] = useState<Worker[]>([]);
   const [holidays, setHolidays] = useState<Set<string>>(new Set());
   const [adding, setAdding] = useState(false);
+  const [wizard, setWizard] = useState(false);
   const [loading, setLoading] = useState(true);
 
   async function load() {
@@ -62,7 +64,10 @@ export function ChangeReporting() {
   return (
     <div>
       <PageHeader title="Change Reporting" subtitle="Reportable events and their SMS deadlines (10 or 20 working days)."
-        actions={<Button onClick={() => setAdding(true)}><span className="inline-flex items-center gap-1.5"><Plus size={16} /> Log event</span></Button>} />
+        actions={<div className="flex items-center gap-2">
+          <Button onClick={() => setWizard(true)}><span className="inline-flex items-center gap-1.5"><Wand2 size={16} /> Guided report</span></Button>
+          <button onClick={() => setAdding(true)} className="text-xs font-semibold text-ink-faint hover:text-ink">Log manually</button>
+        </div>} />
 
       {events.length === 0 ? (
         <EmptyState title="No reportable events" hint="Log a change here and the deadline is calculated for you." />
@@ -92,6 +97,7 @@ export function ChangeReporting() {
       )}
 
       {adding && <LogEvent workers={workers} holidays={holidays} onClose={() => setAdding(false)} onSaved={() => { setAdding(false); load(); }} />}
+      {wizard && <ReportingWizard workers={workers} holidays={holidays} onClose={() => setWizard(false)} onSaved={() => { setWizard(false); load(); }} />}
     </div>
   );
 }

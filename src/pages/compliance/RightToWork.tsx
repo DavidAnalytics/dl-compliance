@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, Wand2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { PageHeader, Card, Button, StatusPill, Avatar } from '@/components/ui';
 import { fullName, formatDate, daysUntil } from '@/lib/compliance';
+import { RtwWizard } from '@/pages/compliance/RtwWizard';
 import type { Worker, RightToWorkCheck, RagRating } from '@/types/database';
 
 const field = 'w-full rounded-xl border border-line bg-white px-3.5 py-2.5 text-sm focus:border-brand-300 focus:outline-none';
@@ -12,6 +13,7 @@ export function RightToWork() {
   const [workers, setWorkers] = useState<Worker[]>([]);
   const [checks, setChecks] = useState<RightToWorkCheck[]>([]);
   const [recordFor, setRecordFor] = useState<Worker | null>(null);
+  const [wizardFor, setWizardFor] = useState<Worker | null | undefined>(undefined);
   const [loading, setLoading] = useState(true);
 
   async function load() {
@@ -41,7 +43,8 @@ export function RightToWork() {
 
   return (
     <div>
-      <PageHeader title="Right to Work & eVisa" subtitle="Online share code checks, statutory excuse and follow-up scheduling." />
+      <PageHeader title="Right to Work & eVisa" subtitle="Online share code checks, statutory excuse and follow-up scheduling."
+        actions={<Button onClick={() => setWizardFor(null)}><span className="inline-flex items-center gap-1.5"><Wand2 size={16} /> Guided check</span></Button>} />
 
       <Card className="overflow-hidden">
         <table className="w-full text-sm">
@@ -62,7 +65,12 @@ export function RightToWork() {
                   <td className="px-5 py-3 capitalize">{c ? c.excuse_type.replace(/_/g, ' ') : '—'}</td>
                   <td className="px-5 py-3">{c ? formatDate(c.excuse_expiry ?? c.follow_up_due) : '—'}</td>
                   <td className="px-5 py-3"><StatusPill rating={r.rating} label={r.label} /></td>
-                  <td className="px-5 py-3 text-right"><Button size="sm" variant="secondary" onClick={() => setRecordFor(w)}>Record check</Button></td>
+                  <td className="px-5 py-3 text-right">
+                    <div className="inline-flex items-center gap-2">
+                      <Button size="sm" onClick={() => setWizardFor(w)}><span className="inline-flex items-center gap-1.5"><Wand2 size={14} /> Guided</span></Button>
+                      <button onClick={() => setRecordFor(w)} className="text-xs font-semibold text-ink-faint hover:text-ink">Manual</button>
+                    </div>
+                  </td>
                 </tr>
               );
             })}
@@ -71,6 +79,7 @@ export function RightToWork() {
       </Card>
 
       {recordFor && <RecordCheck worker={recordFor} onClose={() => setRecordFor(null)} onSaved={() => { setRecordFor(null); load(); }} />}
+      {wizardFor !== undefined && <RtwWizard workers={workers} initialWorker={wizardFor} onClose={() => setWizardFor(undefined)} onSaved={() => { setWizardFor(undefined); load(); }} />}
     </div>
   );
 }

@@ -49,11 +49,11 @@ Built to current UK sponsor guidance: Appendix D record-keeping, the 1 October 2
 
 - **Dashboard.** The DL Compliance Readiness Score across six domains, the items needing attention, and the engaged workers at a glance. Each domain box carries a hover hint explaining where its number comes from and what turns it green.
 - **Engaged Workers.** The register and a full worker profile with a live compliance strip covering right to work, visa, documents, absence, DBS and salary. The register exports to CSV and each profile exports a full dossier to PDF.
-- **Right to Work.** Records each check, the method used, the statutory excuse type under List A or List B, share code validation, and automatic follow-up scheduling for time-limited leave.
+- **Right to Work.** A guided check wizard walks the user from the worker's immigration status to the correct check method (manual List A, online share code, or the Employer Checking Service), lists the required documents, records the check, sets the statutory excuse and follow-up date automatically, and prints a one-page check record. A manual entry route remains for advanced users.
 - **Employment and CoS.** Salary alignment against the going rate, going-rate reference data that HR maintains in Settings, per-period pay checks sourced from the payroll figures, and role-eligibility reviews.
 - **Absence Monitoring.** Absence through the UKVI lens, with the 10 working day reporting trigger raised for qualifying unauthorised absence.
 - **Documents and Retention.** The Appendix D record-keeping checklist per worker, with retention guidance.
-- **Change Reporting.** A log of reportable events with the correct 10 or 20 working-day deadline calculated for each, and a record of what has been reported.
+- **Change Reporting.** A guided reporting wizard asks what happened, identifies the reportable event, calculates the correct 10 or 20 working-day deadline, shows a what-to-include checklist, drafts the report and prints it. Events are then tracked to their SMS deadline with alerts as it approaches. A manual entry route remains.
 - **Audit Trail.** A complete, append-only record of every change, which cannot be edited or deleted. It also drives the recent-activity panels and each worker's activity log.
 - **Reports.** An inspection-ready summary and a one-click audit pack for an officer or a mock audit.
 
