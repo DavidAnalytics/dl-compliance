@@ -3,61 +3,51 @@ import { FileDown } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { PageHeader, Card, Button, SectionLabel } from '@/components/ui';
 import { fullName, formatDate, workerStatus } from '@/lib/compliance';
-import type { Worker, RightToWorkCheck, CrsSnapshot, Organisation } from '@/types/database';
+import { generateAuditPack, type AuditInput } from '@/lib/auditPack';
+import type { Worker, RightToWorkCheck, CrsSnapshot } from '@/types/database';
 
 export function Reports() {
-  const [org, setOrg] = useState<Organisation | null>(null);
   const [snapshot, setSnapshot] = useState<CrsSnapshot | null>(null);
   const [workers, setWorkers] = useState<Worker[]>([]);
   const [rtw, setRtw] = useState<Record<string, RightToWorkCheck>>({});
   const [events, setEvents] = useState<{ event_type: string; deadline: string; status: string }[]>([]);
+  const [pack, setPack] = useState<AuditInput | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     (async () => {
-      const [o, s, w, r, e] = await Promise.all([
+      const [o, s, w, r, e, rd, doc, ab, kp, gr] = await Promise.all([
         supabase.from('organisation').select('*').maybeSingle(),
         supabase.from('crs_snapshots').select('*').order('captured_at', { ascending: false }).limit(1).maybeSingle(),
         supabase.from('workers').select('*').neq('employment_status', 'left').order('last_name'),
         supabase.from('right_to_work_checks').select('*').order('checked_on', { ascending: false }),
-        supabase.from('reportable_events').select('event_type,deadline,status').eq('status', 'due'),
+        supabase.from('reportable_events').select('*'),
+        supabase.from('required_documents').select('*'),
+        supabase.from('documents').select('id,title,category,worker_id,retention_until'),
+        supabase.from('absences').select('*').order('start_date', { ascending: false }),
+        supabase.from('key_personnel').select('*'),
+        supabase.from('soc_going_rates').select('*'),
       ]);
-      setOrg(o.data as Organisation);
+      const workersData = (w.data as Worker[]) ?? [];
+      const checksData = (r.data as RightToWorkCheck[]) ?? [];
       setSnapshot(s.data as CrsSnapshot);
-      setWorkers((w.data as Worker[]) ?? []);
+      setWorkers(workersData);
       const map: Record<string, RightToWorkCheck> = {};
-      for (const c of (r.data as RightToWorkCheck[]) ?? []) if (!map[c.worker_id]) map[c.worker_id] = c;
+      for (const c of checksData) if (!map[c.worker_id]) map[c.worker_id] = c;
       setRtw(map);
-      setEvents((e.data as typeof events) ?? []);
+      setEvents(((e.data as { event_type: string; deadline: string; status: string }[]) ?? []).filter((x) => x.status === 'due'));
+      setPack({
+        org: (o.data as Record<string, unknown>) ?? null, workers: workersData as unknown as Record<string, unknown>[],
+        checks: checksData as unknown as Record<string, unknown>[], reqDocs: (rd.data as Record<string, unknown>[]) ?? [],
+        documents: (doc.data as Record<string, unknown>[]) ?? [], absences: (ab.data as Record<string, unknown>[]) ?? [],
+        events: (e.data as Record<string, unknown>[]) ?? [], keyPersonnel: (kp.data as Record<string, unknown>[]) ?? [],
+        rates: (gr.data as Record<string, unknown>[]) ?? [], snapshot: (s.data as Record<string, unknown>) ?? null,
+      });
       setLoading(false);
     })();
   }, []);
 
-  function generatePack() {
-    const now = new Date().toLocaleString('en-GB');
-    const rows = workers.map((w) => {
-      const s = workerStatus(w, rtw[w.id]);
-      return `<tr><td>${fullName(w)}</td><td>${w.job_title ?? '—'}</td><td>${w.sponsorship_type.replace(/_/g, ' ')}</td><td>${w.visa_expiry ? formatDate(w.visa_expiry) : '—'}</td><td>${s.headline}</td></tr>`;
-    }).join('');
-    const evRows = events.map((e) => `<tr><td>${e.event_type.replace(/_/g, ' ')}</td><td>${formatDate(e.deadline)}</td><td>${e.status}</td></tr>`).join('') || '<tr><td colspan="3">None outstanding</td></tr>';
-    const html = `<!doctype html><html><head><meta charset="utf-8"><title>Compliance Audit Pack</title>
-      <style>body{font-family:Arial,sans-serif;color:#1f1b3a;margin:40px;font-size:13px}h1{font-size:20px}h2{font-size:15px;margin-top:24px;border-bottom:2px solid #635BE5;padding-bottom:4px}table{width:100%;border-collapse:collapse;margin-top:8px}th,td{text-align:left;padding:6px 8px;border-bottom:1px solid #ddd}th{background:#f4f4fb}.meta{color:#666}</style></head>
-      <body>
-      <h1>Sponsor Compliance Audit Pack</h1>
-      <p class="meta">${org?.legal_name ?? 'DL Business Systems Ltd'} · Company number ${org?.company_number ?? '17211065'}<br/>
-      Sponsor licence: ${org?.sponsor_licence_no ?? '—'} · Rating: ${org?.licence_rating ?? '—'} · Route: ${org?.licence_route ?? '—'}<br/>
-      Generated ${now}</p>
-      <h2>Compliance Readiness Score</h2>
-      <p>${snapshot?.overall_score ?? '—'} / 100 (${snapshot?.overall_rating ?? '—'})</p>
-      <h2>Engaged workers (${workers.length})</h2>
-      <table><tr><th>Name</th><th>Role</th><th>Sponsorship</th><th>Visa expiry</th><th>Status</th></tr>${rows}</table>
-      <h2>Outstanding reportable events</h2>
-      <table><tr><th>Event</th><th>Deadline</th><th>Status</th></tr>${evRows}</table>
-      <p class="meta" style="margin-top:30px">Internal record-keeping system. Not a substitute for legal advice.</p>
-      </body></html>`;
-    const win = window.open('', '_blank');
-    if (win) { win.document.write(html); win.document.close(); win.focus(); setTimeout(() => win.print(), 300); }
-  }
+  function generatePack() { if (pack) generateAuditPack(pack); }
 
   if (loading) return <p className="text-sm text-ink-muted">Loading…</p>;
 

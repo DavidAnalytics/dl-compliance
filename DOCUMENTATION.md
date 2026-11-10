@@ -55,7 +55,7 @@ Built to current UK sponsor guidance: Appendix D record-keeping, the 1 October 2
 - **Documents and Retention.** The Appendix D record-keeping checklist per worker, with retention guidance.
 - **Change Reporting.** A guided reporting wizard asks what happened, identifies the reportable event, calculates the correct 10 or 20 working-day deadline, shows a what-to-include checklist, drafts the report and prints it. Events are then tracked to their SMS deadline with alerts as it approaches. A manual entry route remains.
 - **Audit Trail.** A complete, append-only record of every change, which cannot be edited or deleted. It also drives the recent-activity panels and each worker's activity log.
-- **Reports.** An inspection-ready summary and a one-click audit pack for an officer or a mock audit.
+- **Reports.** A one-click Compliance Audit Pack: a paginated, inspection-ready document structured around the five UKVI assessment areas (Preventing Illegal Working, Record Keeping, Contact Details, Tracking and Monitoring, General Sponsor Duties). It opens with an inspection-readiness verdict and area scores, then gives a worker risk ranking, a page per worker with right to work history, an Appendix D completeness grid, a document inventory, a contact-details audit, absence monitoring, a salary-compliance table, a CoS register, a sponsor-duties checklist, and an open-issues and remediation tracker. Generated live from current data and saved as PDF from the browser.
 
 ---
 
